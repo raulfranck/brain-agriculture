@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+@name shared-rules
+@tags [fullstack, docker, docs, code-style, ci-cd, monorepo, integration]
+
+## Projeto
+- Estruture como **monorepo**, com `apps/frontend`, `apps/backend`, `libs/common`.
+- Use `pnpm` ou `yarn workspaces` para gerenciar dependências compartilhadas.
+- Compartilhe tipos entre front e back com uma pasta `libs/types`.
+
+## Docker
+- Cada app (`frontend`, `backend`) deve ter seu próprio `Dockerfile`.
+- Use `docker-compose` para orquestrar os serviços (`frontend`, `backend`, `postgres`).
+- Exponha backend na porta 3000, frontend na 5173 (Vite ou similar).
+
+## Comunicação
+- O frontend deve se comunicar com o backend usando URL configurável via `.env`.
+- Utilize CORS no NestJS configurado corretamente.
+
+## Documentação
+- README principal com instruções de:
+  - Instalação
+  - Ambiente de desenvolvimento
+  - Executar testes
+  - Build & Deploy
+- Gere documentação Swagger (`/api/docs`) automaticamente via NestJS.
+- Crie diagrama de entidades no início ou junto da doc técnica (ex: dbdiagram.io).
+
+## Estilo de código
+- Use ESLint + Prettier para padronização.
+- Configure Husky + lint-staged para lint antes de commits.
+- Tipagem sempre explícita em ambos os lados.
+
+## CI/CD
+- Configure um fluxo básico no GitHub Actions:
+  - Lint
+  - Testes
+  - Build de containers
+- Adicione badge de status no README.
+
+## Extras
+- Seeds de dados devem estar disponíveis para facilitar testes manuais.
+- Utilize `.env.example` para listar variáveis de ambiente exigidas.
+

@@ -1,0 +1,86 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+@name backend-rules
+@tags [nestjs, typescript, postgres, backend, prisma, docker, clean-architecture]
+
+## Estrutura de Projeto
+
+- O projeto deve seguir uma estrutura modular, com separação clara entre domínios:
+  - Cada domínio (ex: producer, farm) deve conter: `controllers`, `services`, `dtos`, `entities`, `repositories`, `mappers`.
+  - Pastas recomendadas:
+    - `src/modules/producer`
+    - `src/modules/farm`
+    - `src/shared`
+
+- Arquitetura em camadas:
+  - **Controller**: recebe e valida a entrada.
+  - **Service**: implementa regras de negócio.
+  - **Repository**: lida com o banco de dados.
+  - **DTOs**: definem as formas de entrada e saída.
+  - **Entities**: representam o domínio.
+
+## ORM e Banco de Dados
+
+- Utilize **TypeORM** com **PostgreSQL**.
+- As entidades principais são:
+  - `Producer`
+  - `Farm`
+  - `Harvest`
+  - `Crop`
+- Relacionamentos:
+  - Um `Producer` pode ter várias `Farms`.
+  - Uma `Farm` pode conter várias `Harvests`, e cada `Harvest` pode ter várias `Crops`.
+
+- Regras de negócio no schema:
+  - A soma das áreas agricultável e vegetação **nunca pode exceder** a área total da fazenda.
+
+## Validações
+
+- Use `class-validator` com DTOs para validar entradas.
+- Valide CPF e CNPJ com funções específicas reutilizáveis.
+- Use decorators (`@IsString`, `@IsNumber`, etc.) em todos os campos.
+
+## API
+
+- Crie uma **API RESTful** usando os controllers do NestJS.
+- Utilize **Swagger** (`@nestjs/swagger`) para gerar a documentação em `/api/docs`.
+- Seguir os verbos corretos:
+  - `GET /producers`
+  - `POST /producers`
+  - `PUT /producers/:id`
+  - `DELETE /producers/:id`
+
+## Testes
+
+- Escreva testes com **Jest**:
+  - **Unitários** para services e regras de negócio.
+  - **Integração** para endpoints da API.
+- Mantenha a cobertura mínima em 80%.
+
+## Observabilidade
+
+- Use `nestjs-pino` ou `nestjs-logger` para logs estruturados.
+- Inclua logs para:
+  - Requisições HTTP
+  - Erros
+  - Eventos de negócio relevantes
+
+## Docker
+
+- Adicione `Dockerfile` para o backend.
+- Utilize `docker-compose.yml` para subir os serviços:
+  - backend
+  - postgres
+- Expor porta 3000 para o backend.
+
+## Outras Regras
+
+- Use `.env` com o pacote `@nestjs/config` para variáveis de ambiente.
+- Evite lógica de negócio em controllers.
+- Prefira `async/await` em vez de `then/catch`.
+- Use `HttpException` com mensagens claras e status codes apropriados.
+
+
