@@ -1,0 +1,14 @@
+# Ignorar dependências e builds locais
+node_modules
+apps/*/node_modules
+libs/*/node_modules
+dist
+apps/*/dist
+libs/*/dist
+
+# Ignorar controle de versão e ferramentas
+.git
+.cursor
+
+# Ignorar arquivos temporários e logs
+*.log 
