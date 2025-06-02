@@ -1,5 +1,7 @@
 # Dependências
 node_modules/
+.env
+.env.example
 
 # Documentação e arquivos auxiliares
 

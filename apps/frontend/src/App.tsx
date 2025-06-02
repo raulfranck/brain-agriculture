@@ -8,7 +8,7 @@ function App() {
   const [health, setHealth] = useState<string>('...')
 
   useEffect(() => {
-    fetch('http://localhost:3000/health')
+    fetch(`${import.meta.env.VITE_API_URL}/health`)
       .then(res => res.json())
       .then(data => setHealth(data.status))
       .catch(() => setHealth('error'))
