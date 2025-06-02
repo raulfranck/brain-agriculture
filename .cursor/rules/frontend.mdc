@@ -1,0 +1,39 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+@name frontend-rules
+@tags [react, redux, styled-components, atomic-design, typescript, jest, frontend]
+
+## Diretórios
+- Use estrutura baseada em **atomic design**: `atoms`, `molecules`, `organisms`, `templates`, `pages`.
+- Coloque os arquivos de estilo no mesmo diretório do componente, com styled-components.
+- Nomeie arquivos com PascalCase para componentes: `FarmCard.tsx`.
+
+## Estado global
+- Utilize **Redux Toolkit** com slices para cada domínio (ex: `producerSlice`, `farmsSlice`).
+- Configure o `store` com persistência opcional para dados temporários.
+- Sempre use `useSelector` com `typed hooks`.
+
+## Componentes
+- Componentes devem ser **puros**, com tipagem explícita (`FC<Props>`).
+- Utilize styled-components com sintaxe de template literals para estilo.
+- Evite lógica de negócio dentro dos componentes, delegue para hooks ou serviços.
+
+## Testes
+- Escreva testes unitários com Jest + React Testing Library.
+- Teste componentes isoladamente, especialmente os `organisms` e `templates`.
+- Utilize mocks para chamadas de API com MSW ou funções utilitárias.
+
+## Boas práticas
+- Priorize acessibilidade: use `aria-*` e tags semânticas.
+- Prefira `useEffect` com dependências explícitas.
+- Nunca deixe `console.log` no código final.
+- Garanta responsividade com styled-components ou media queries.
+
+## APIs
+- Utilize uma camada `services/api.ts` para chamadas à API.
+- Tipagem das respostas da API deve vir de um único arquivo `types/api.ts`.
+
+
