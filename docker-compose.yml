@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: brain_agriculture
     ports:
-      - '5433:5432'
+      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -18,7 +18,7 @@ services:
       dockerfile: apps/backend/Dockerfile
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://postgres:postgres@postgres:5433/brain_agriculture
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/brain_agriculture
       PORT: 3000
     ports:
       - '3000:3000'

@@ -23,8 +23,8 @@
 
 - [x] Criar `Dockerfile` para backend e frontend
 - [x] Criar `docker-compose.yml` para orquestrar backend, frontend e postgres
-- [ ] Adicionar `.env.example` na raiz e em cada app
-- [ ] Configurar variáveis de ambiente essenciais (DB, PORT, etc)
+- [x] Adicionar `.env.example` na raiz e em cada app
+- [x] Configurar variáveis de ambiente essenciais (DB, PORT, etc)
 - [x] Subir stack com `docker-compose` e garantir que:
   - Backend, frontend e banco estão acessíveis
   - Comunicação entre frontend e backend funciona via containers
@@ -38,7 +38,7 @@
 - [ ] Implementar repositórios, services e controllers básicos
 - [ ] Configurar Swagger (`/api/docs`)
 - [ ] Adicionar logger estruturado (`nestjs-pino`)
-- [ ] Implementar health-check (`/health`)
+- [x] Implementar health-check (`/health`)
 
 ## 5. Frontend – Setup Inicial e Atomic Design
 
