@@ -1,0 +1,9 @@
+# Dependências
+node_modules/
+
+# Documentação e arquivos auxiliares
+PROJECT.md
+step-by-step.md
+
+# Ferramentas e arquivos temporários
+.cursor/
