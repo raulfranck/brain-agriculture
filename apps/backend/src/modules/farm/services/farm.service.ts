@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Logger } from 'nestjs-pino';
 import { Farm } from '../entities/farm.entity';
 import { Producer } from '../../producer/entities/producer.entity';
 import { CreateFarmDto } from '../dtos/create-farm.dto';
@@ -13,91 +14,229 @@ export class FarmService {
     private readonly farmRepository: Repository<Farm>,
     @InjectRepository(Producer)
     private readonly producerRepository: Repository<Producer>,
+    @Inject(Logger)
+    private readonly logger: Logger,
   ) {}
 
   async create(createFarmDto: CreateFarmDto): Promise<Farm> {
-    // Verifica se o produtor existe
+    const startTime = Date.now();
+    
+    this.logger.log({
+      operation: 'farm.create',
+      producerId: createFarmDto.producerId,
+      farmName: createFarmDto.name,
+      totalArea: createFarmDto.totalArea,
+      arableArea: createFarmDto.arableArea,
+      vegetationArea: createFarmDto.vegetationArea,
+    }, 'Iniciando criação de fazenda');
+
+    // Verificar se o produtor existe
     const producer = await this.producerRepository.findOne({
-      where: { id: createFarmDto.producerId }
+      where: { id: createFarmDto.producerId },
     });
 
     if (!producer) {
+      this.logger.warn({
+        operation: 'farm.create',
+        producerId: createFarmDto.producerId,
+        duration: Date.now() - startTime,
+      }, 'Tentativa de criar fazenda para produtor inexistente');
+      
       throw new NotFoundException('Produtor não encontrado');
     }
 
-    // Valida áreas antes de criar
-    this.validateAreas(createFarmDto.totalArea, createFarmDto.arableArea, createFarmDto.vegetationArea);
+    // Validar áreas (dupla verificação além da validação na entidade)
+    const usedArea = createFarmDto.arableArea + createFarmDto.vegetationArea;
+    if (usedArea > createFarmDto.totalArea) {
+      this.logger.warn({
+        operation: 'farm.create',
+        producerId: createFarmDto.producerId,
+        totalArea: createFarmDto.totalArea,
+        arableArea: createFarmDto.arableArea,
+        vegetationArea: createFarmDto.vegetationArea,
+        usedArea,
+        duration: Date.now() - startTime,
+      }, 'Tentativa de criar fazenda com áreas inválidas');
+      
+      throw new BadRequestException(
+        `Área agricultável (${createFarmDto.arableArea}) + vegetação (${createFarmDto.vegetationArea}) = ${usedArea} não pode exceder a área total (${createFarmDto.totalArea})`
+      );
+    }
 
     const farm = this.farmRepository.create({
-      ...createFarmDto,
-      producer
+      name: createFarmDto.name,
+      totalArea: createFarmDto.totalArea,
+      arableArea: createFarmDto.arableArea,
+      vegetationArea: createFarmDto.vegetationArea,
+      producer,
     });
 
-    return await this.farmRepository.save(farm);
+    const savedFarm = await this.farmRepository.save(farm);
+
+    this.logger.log({
+      operation: 'farm.create',
+      farmId: savedFarm.id,
+      producerId: createFarmDto.producerId,
+      farmName: savedFarm.name,
+      totalArea: savedFarm.totalArea,
+      duration: Date.now() - startTime,
+    }, 'Fazenda criada com sucesso');
+
+    return savedFarm;
   }
 
   async findAll(): Promise<Farm[]> {
-    return await this.farmRepository.find({
-      relations: ['producer']
+    const startTime = Date.now();
+    
+    this.logger.debug({
+      operation: 'farm.findAll',
+    }, 'Buscando todas as fazendas');
+
+    const farms = await this.farmRepository.find({
+      relations: ['producer'],
     });
+
+    this.logger.log({
+      operation: 'farm.findAll',
+      count: farms.length,
+      duration: Date.now() - startTime,
+    }, 'Fazendas encontradas');
+
+    return farms;
   }
 
   async findOne(id: string): Promise<Farm> {
+    const startTime = Date.now();
+    
+    this.logger.debug({
+      operation: 'farm.findOne',
+      farmId: id,
+    }, 'Buscando fazenda por ID');
+
     const farm = await this.farmRepository.findOne({
       where: { id },
-      relations: ['producer']
+      relations: ['producer'],
     });
 
     if (!farm) {
+      this.logger.warn({
+        operation: 'farm.findOne',
+        farmId: id,
+        duration: Date.now() - startTime,
+      }, 'Fazenda não encontrada');
+      
       throw new NotFoundException('Fazenda não encontrada');
     }
+
+    this.logger.debug({
+      operation: 'farm.findOne',
+      farmId: id,
+      producerId: farm.producer?.id,
+      duration: Date.now() - startTime,
+    }, 'Fazenda encontrada');
 
     return farm;
   }
 
-  async update(id: string, updateFarmDto: UpdateFarmDto): Promise<Farm> {
-    const farm = await this.findOne(id);
+  async findByProducer(producerId: string): Promise<Farm[]> {
+    const startTime = Date.now();
+    
+    this.logger.debug({
+      operation: 'farm.findByProducer',
+      producerId,
+    }, 'Buscando fazendas por produtor');
 
-    // Se está alterando o produtor, verifica se existe
-    if (updateFarmDto.producerId && updateFarmDto.producerId !== farm.producer.id) {
-      const producer = await this.producerRepository.findOne({
-        where: { id: updateFarmDto.producerId }
-      });
+    // Verificar se o produtor existe
+    const producer = await this.producerRepository.findOne({
+      where: { id: producerId },
+    });
 
-      if (!producer) {
-        throw new NotFoundException('Produtor não encontrado');
-      }
-
-      farm.producer = producer;
+    if (!producer) {
+      this.logger.warn({
+        operation: 'farm.findByProducer',
+        producerId,
+        duration: Date.now() - startTime,
+      }, 'Tentativa de buscar fazendas para produtor inexistente');
+      
+      throw new NotFoundException('Produtor não encontrado');
     }
 
-    // Atualiza os campos
-    Object.assign(farm, updateFarmDto);
+    const farms = await this.farmRepository.find({
+      where: { producer: { id: producerId } },
+      relations: ['producer'],
+    });
 
-    // Valida áreas após atualização
-    this.validateAreas(farm.totalArea, farm.arableArea, farm.vegetationArea);
+    this.logger.log({
+      operation: 'farm.findByProducer',
+      producerId,
+      count: farms.length,
+      duration: Date.now() - startTime,
+    }, 'Fazendas encontradas para o produtor');
 
-    return await this.farmRepository.save(farm);
+    return farms;
+  }
+
+  async update(id: string, updateFarmDto: UpdateFarmDto): Promise<Farm> {
+    const startTime = Date.now();
+    
+    this.logger.log({
+      operation: 'farm.update',
+      farmId: id,
+      updateFields: Object.keys(updateFarmDto),
+    }, 'Iniciando atualização de fazenda');
+
+    const farm = await this.findOne(id);
+
+    // Se está atualizando áreas, validar
+    const newArableArea = updateFarmDto.arableArea ?? farm.arableArea;
+    const newVegetationArea = updateFarmDto.vegetationArea ?? farm.vegetationArea;
+    const newTotalArea = updateFarmDto.totalArea ?? farm.totalArea;
+    
+    const usedArea = newArableArea + newVegetationArea;
+    if (usedArea > newTotalArea) {
+      this.logger.warn({
+        operation: 'farm.update',
+        farmId: id,
+        newTotalArea,
+        newArableArea,
+        newVegetationArea,
+        usedArea,
+        duration: Date.now() - startTime,
+      }, 'Tentativa de atualizar fazenda com áreas inválidas');
+      
+      throw new BadRequestException(
+        `Área agricultável (${newArableArea}) + vegetação (${newVegetationArea}) = ${usedArea} não pode exceder a área total (${newTotalArea})`
+      );
+    }
+
+    await this.farmRepository.update(id, updateFarmDto);
+    const updatedFarm = await this.findOne(id);
+
+    this.logger.log({
+      operation: 'farm.update',
+      farmId: id,
+      updateFields: Object.keys(updateFarmDto),
+      duration: Date.now() - startTime,
+    }, 'Fazenda atualizada com sucesso');
+
+    return updatedFarm;
   }
 
   async remove(id: string): Promise<void> {
+    const startTime = Date.now();
+    
+    this.logger.log({
+      operation: 'farm.remove',
+      farmId: id,
+    }, 'Iniciando remoção de fazenda');
+
     const farm = await this.findOne(id);
     await this.farmRepository.remove(farm);
-  }
 
-  async findByProducer(producerId: string): Promise<Farm[]> {
-    return await this.farmRepository.find({
-      where: { producer: { id: producerId } },
-      relations: ['producer']
-    });
-  }
-
-  private validateAreas(totalArea: number, arableArea: number, vegetationArea: number): void {
-    const usedArea = arableArea + vegetationArea;
-    if (usedArea > totalArea) {
-      throw new BadRequestException(
-        `Área agricultável (${arableArea}) + vegetação (${vegetationArea}) = ${usedArea} não pode exceder a área total (${totalArea})`
-      );
-    }
+    this.logger.log({
+      operation: 'farm.remove',
+      farmId: id,
+      duration: Date.now() - startTime,
+    }, 'Fazenda removida com sucesso');
   }
 } 

@@ -35,9 +35,9 @@
 - [x] Instalar e configurar TypeORM com PostgreSQL
 - [x] Configurar `@nestjs/config` para variáveis de ambiente
 - [x] Criar entidades iniciais (`Producer`, `Farm`, etc) e migrations
-- [ ] Implementar repositórios, services e controllers básicos
-- [ ] Configurar Swagger (`/api/docs`)
-- [ ] Adicionar logger estruturado (`nestjs-pino`)
+- [x] Implementar repositórios, services e controllers básicos
+- [x] Configurar Swagger (`/api/docs`)
+- [x] Adicionar logger estruturado (`nestjs-pino`)
 - [x] Implementar health-check (`/health`)
 
 ## 5. Frontend – Setup Inicial e Atomic Design
