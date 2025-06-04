@@ -13,6 +13,26 @@ export class CreateFarmDto {
   name: string;
 
   @ApiProperty({ 
+    example: 'Ribeirão Preto',
+    description: 'Cidade onde a fazenda está localizada',
+    minLength: 2,
+    maxLength: 100
+  })
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @ApiProperty({ 
+    example: 'SP',
+    description: 'Estado onde a fazenda está localizada (sigla ou nome)',
+    minLength: 2,
+    maxLength: 50
+  })
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+
+  @ApiProperty({ 
     example: 1000.5,
     description: 'Área total da fazenda em hectares',
     minimum: 0.1,

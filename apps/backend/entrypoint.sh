@@ -25,7 +25,8 @@ EOF
 echo "✅ Banco resetado com sucesso!"
 
 echo "🔄 Executando migrations..."
-pnpm typeorm migration:run
+# Executar migrations usando o arquivo de data-source JavaScript
+npx typeorm migration:run -d src/data-source.js
 
 echo "🚀 Iniciando aplicação NestJS..."
 node dist/main.js 

@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   HttpCode,
@@ -72,7 +73,7 @@ export class FarmController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar fazenda' })
+  @ApiOperation({ summary: 'Atualizar fazenda (PATCH)' })
   @ApiParam({ name: 'id', description: 'ID da fazenda (UUID)' })
   @ApiResponse({
     status: 200,
@@ -82,6 +83,23 @@ export class FarmController {
   @ApiResponse({ status: 400, description: 'Dados inválidos ou áreas incompatíveis' })
   @ApiResponse({ status: 404, description: 'Fazenda ou produtor não encontrado' })
   async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateFarmDto: UpdateFarmDto,
+  ): Promise<Farm> {
+    return await this.farmService.update(id, updateFarmDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Atualizar fazenda (PUT)' })
+  @ApiParam({ name: 'id', description: 'ID da fazenda (UUID)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Fazenda atualizada com sucesso',
+    type: Farm,
+  })
+  @ApiResponse({ status: 400, description: 'Dados inválidos ou áreas incompatíveis' })
+  @ApiResponse({ status: 404, description: 'Fazenda ou produtor não encontrado' })
+  async updatePut(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateFarmDto: UpdateFarmDto,
   ): Promise<Farm> {

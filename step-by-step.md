@@ -47,17 +47,21 @@
 - [x] Configurar camada de serviços para comunicação com backend
 - [x] Adicionar tipagem compartilhada via `libs/types`
 - [x] Configurar variáveis de ambiente para URL do backend
-- [ ] Consumir endpoints backend - Criar Productor - Farm - Garantir comunicação total com backend
+- [x] Consumir endpoints backend - Criar Productor - Farm - Garantir comunicação total com backend
+- [x] ✅ **CORRIGIDO**: Endpoints PUT para Producers e Farms funcionais
+- [x] ✅ **CORRIGIDO**: Campos city, state, producerId adicionados à entidade Farm
+- [x] ✅ **CORRIGIDO**: Validação CPF/CNPJ implementada
+- [x] ✅ **CORRIGIDO**: Regra de negócio área agricultável + vegetação ≤ área total
 - [ ] Implementar dashboard analítico no frontend
 - [ ] Criar gráficos de pizza (estado, cultura, uso do solo)
 - [ ] Exibir totais de fazendas e hectares
 
 ## 6. Implementação das Regras de Negócio
 
-- [ ] Implementar entidades, DTOs, validações (`class-validator`)
-- [ ] Validar CPF/CNPJ com funções reutilizáveis
-- [ ] Implementar regra: `areaAgricultável + areaVegetação ≤ areaTotal`
-- [ ] Criar endpoints RESTful para CRUD de produtores e fazendas
+- [x] Implementar entidades, DTOs, validações (`class-validator`)
+- [x] Validar CPF/CNPJ com funções reutilizáveis
+- [x] Implementar regra: `areaAgricultável + areaVegetação ≤ areaTotal`
+- [x] Criar endpoints RESTful para CRUD de produtores e fazendas
 
 ## 7. Testes
 

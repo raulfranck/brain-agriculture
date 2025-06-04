@@ -20,6 +20,20 @@ export class Farm {
   name: string;
 
   @ApiProperty({ 
+    example: 'Ribeirão Preto',
+    description: 'Cidade onde a fazenda está localizada'
+  })
+  @Column()
+  city: string;
+
+  @ApiProperty({ 
+    example: 'SP',
+    description: 'Estado onde a fazenda está localizada'
+  })
+  @Column()
+  state: string;
+
+  @ApiProperty({ 
     example: 1000.5,
     description: 'Área total da fazenda em hectares'
   })
@@ -41,11 +55,18 @@ export class Farm {
   vegetationArea: number;
 
   @ApiProperty({ 
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    description: 'ID do produtor proprietário (UUID)'
+  })
+  @Column()
+  producerId: string;
+
+  @ApiProperty({ 
     type: () => Producer,
     description: 'Produtor proprietário da fazenda'
   })
   @ManyToOne(() => Producer, (producer) => producer.farms)
-  @JoinColumn()
+  @JoinColumn({ name: 'producerId' })
   producer: Producer;
 
   @BeforeInsert()

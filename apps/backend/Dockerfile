@@ -17,14 +17,18 @@ COPY --from=builder /repo/apps/backend/package.json ./package.json
 COPY --from=builder /repo/node_modules ../../node_modules
 COPY --from=builder /repo/apps/backend/node_modules ./node_modules
 
+# Copiar migrations e source files para o data-source funcionar
+COPY --from=builder /repo/apps/backend/src/migrations ./src/migrations
+COPY --from=builder /repo/apps/backend/src/data-source.js ./src/data-source.js
+
 # Copiar e configurar entrypoint
 COPY --from=builder /repo/apps/backend/entrypoint.sh ./entrypoint.sh
 
 # Garantir line endings corretos e permissões
 RUN sed -i 's/\r$//' ./entrypoint.sh && chmod +x ./entrypoint.sh
 
-# Instalar pnpm e configurar ambiente
-RUN npm install -g pnpm
+# Instalar pnpm, ts-node e configurar ambiente
+RUN npm install -g pnpm ts-node typescript
 ENV NODE_ENV=production
 EXPOSE 3000
 

@@ -25,6 +25,8 @@ export class FarmService {
       operation: 'farm.create',
       producerId: createFarmDto.producerId,
       farmName: createFarmDto.name,
+      city: createFarmDto.city,
+      state: createFarmDto.state,
       totalArea: createFarmDto.totalArea,
       arableArea: createFarmDto.arableArea,
       vegetationArea: createFarmDto.vegetationArea,
@@ -65,9 +67,12 @@ export class FarmService {
 
     const farm = this.farmRepository.create({
       name: createFarmDto.name,
+      city: createFarmDto.city,
+      state: createFarmDto.state,
       totalArea: createFarmDto.totalArea,
       arableArea: createFarmDto.arableArea,
       vegetationArea: createFarmDto.vegetationArea,
+      producerId: createFarmDto.producerId,
       producer,
     });
 
@@ -78,6 +83,8 @@ export class FarmService {
       farmId: savedFarm.id,
       producerId: createFarmDto.producerId,
       farmName: savedFarm.name,
+      city: savedFarm.city,
+      state: savedFarm.state,
       totalArea: savedFarm.totalArea,
       duration: Date.now() - startTime,
     }, 'Fazenda criada com sucesso');
@@ -162,7 +169,7 @@ export class FarmService {
     }
 
     const farms = await this.farmRepository.find({
-      where: { producer: { id: producerId } },
+      where: { producerId },
       relations: ['producer'],
     });
 

@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Put,
   Param,
   Delete,
   HttpCode,
@@ -60,7 +61,7 @@ export class ProducerController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar produtor' })
+  @ApiOperation({ summary: 'Atualizar produtor (PATCH)' })
   @ApiParam({ name: 'id', description: 'ID do produtor (UUID)' })
   @ApiResponse({
     status: 200,
@@ -71,6 +72,24 @@ export class ProducerController {
   @ApiResponse({ status: 404, description: 'Produtor não encontrado' })
   @ApiResponse({ status: 409, description: 'Documento já cadastrado por outro produtor' })
   async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProducerDto: UpdateProducerDto,
+  ): Promise<Producer> {
+    return await this.producerService.update(id, updateProducerDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Atualizar produtor (PUT)' })
+  @ApiParam({ name: 'id', description: 'ID do produtor (UUID)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Produtor atualizado com sucesso',
+    type: Producer,
+  })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiResponse({ status: 404, description: 'Produtor não encontrado' })
+  @ApiResponse({ status: 409, description: 'Documento já cadastrado por outro produtor' })
+  async updatePut(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProducerDto: UpdateProducerDto,
   ): Promise<Producer> {
