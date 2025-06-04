@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
@@ -8,9 +7,15 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: brain_agriculture
     ports:
-      - '5433:5432'
+      - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d brain_agriculture"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   backend:
     build:
@@ -18,12 +23,17 @@ services:
       dockerfile: apps/backend/Dockerfile
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgres://postgres:postgres@postgres:5433/brain_agriculture
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: brain_agriculture
       PORT: 3000
     ports:
       - '3000:3000'
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   frontend:
     build:
