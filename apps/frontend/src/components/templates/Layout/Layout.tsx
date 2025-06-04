@@ -110,11 +110,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Sprout size={20} />
             Culturas
           </NavLink>
-          
-          <NavLink to="/analytics" $isActive={isActive('/analytics')}>
-            <BarChart3 size={20} />
-            Análises
-          </NavLink>
         </Navigation>
       </Sidebar>
 

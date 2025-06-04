@@ -39,6 +39,7 @@
 - [x] Configurar Swagger (`/api/docs`)
 - [x] Adicionar logger estruturado (`nestjs-pino`)
 - [x] Implementar health-check (`/health`)
+- [x] Criar Entidades inicias (`Cultura`, `Safra`)
 
 ## 5. Frontend – Setup Inicial e Atomic Design
 
@@ -52,9 +53,12 @@
 - [x] ✅ **CORRIGIDO**: Campos city, state, producerId adicionados à entidade Farm
 - [x] ✅ **CORRIGIDO**: Validação CPF/CNPJ implementada
 - [x] ✅ **CORRIGIDO**: Regra de negócio área agricultável + vegetação ≤ área total
-- [ ] Implementar dashboard analítico no frontend
-- [ ] Criar gráficos de pizza (estado, cultura, uso do solo)
-- [ ] Exibir totais de fazendas e hectares
+- [x] Criar CRUD para Safra e Cultura
+- [x] ✅ **IMPLEMENTADO**: Dashboard analítico no frontend
+- [x] ✅ **IMPLEMENTADO**: Gráficos de pizza (estado, cultura, uso do solo)
+- [x] ✅ **IMPLEMENTADO**: Exibir totais de fazendas e hectares
+- [x] ✅ **CORRIGIDO**: Cálculo correto da distribuição por cultura
+- [x] ✅ **IMPLEMENTADO**: Filtro por produtor no dashboard
 
 ## 6. Implementação das Regras de Negócio
 

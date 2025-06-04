@@ -14,7 +14,6 @@ function App() {
           <Route path="/producers" element={<Producers />} />
           <Route path="/farms" element={<Farms />} />
           <Route path="/crops" element={<Crops />} />
-          <Route path="/analytics" element={<div style={{ padding: '24px' }}>Página de análises em desenvolvimento...</div>} />
         </Routes>
       </Layout>
     </Router>
