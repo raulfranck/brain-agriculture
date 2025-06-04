@@ -1,9 +1,55 @@
 # Dependências
 node_modules/
+.pnpm-store/
+
+# Variáveis de ambiente
 .env
-.env.example
+.env.local
+.env.production
+.env.development
+# MANTER .env.example - ele DEVE ser commitado para documentação
 
-# Documentação e arquivos auxiliares
-
-# Ferramentas e arquivos temporários
+# Build output
 dist/
+build/
+.next/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# IDE
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+
+# IMPORTANTE: Migrations DEVEM ser commitadas!
+# Elas fazem parte do código da aplicação
+# NÃO adicione src/migrations/ aqui

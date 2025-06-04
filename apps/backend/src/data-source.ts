@@ -13,6 +13,8 @@ export default new DataSource({
     'src/modules/**/entities/*.entity.{ts,js}',
   ],
   migrations: [
-    'src/migrations/*.{ts,js}',
+    process.env.NODE_ENV === 'production'
+      ? __dirname + '/migrations/*.js'
+      : 'src/migrations/*.{ts,js}',
   ],
 }); 

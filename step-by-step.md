@@ -31,10 +31,10 @@
 
 ## 4. Backend – Setup Modular e Domínio
 
-- [ ] Estruturar módulos: `modules/producer`, `modules/farm`, etc.
-- [ ] Instalar e configurar TypeORM com PostgreSQL
-- [ ] Configurar `@nestjs/config` para variáveis de ambiente
-- [ ] Criar entidades iniciais (`Producer`, `Farm`, etc) e migrations
+- [x] Estruturar módulos: `modules/producer`, `modules/farm`, etc.
+- [x] Instalar e configurar TypeORM com PostgreSQL
+- [x] Configurar `@nestjs/config` para variáveis de ambiente
+- [x] Criar entidades iniciais (`Producer`, `Farm`, etc) e migrations
 - [ ] Implementar repositórios, services e controllers básicos
 - [ ] Configurar Swagger (`/api/docs`)
 - [ ] Adicionar logger estruturado (`nestjs-pino`)

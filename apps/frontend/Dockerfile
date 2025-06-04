@@ -13,5 +13,6 @@ WORKDIR /app
 COPY --from=builder /app/apps/frontend/dist ./dist
 COPY --from=builder /app/apps/frontend/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
+RUN npm install -g pnpm
 EXPOSE 5173
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "5173"] 
+CMD ["pnpm", "vite", "preview", "--host", "0.0.0.0", "--port", "5173"] 
