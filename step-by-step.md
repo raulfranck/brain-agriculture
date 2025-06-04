@@ -63,6 +63,7 @@
 ## 5.1. Melhorias de UX/UI
 
 - [x] ✅ **MELHORIA**: Máscara dinâmica para campos CPF/CNPJ
+- [x] ✅ **MELHORIA**: Seletor de tipo de pessoa (PF/PJ) para CPF/CNPJ
 - [x] ✅ **MELHORIA**: Validação para impedir números negativos em hectares
 - [x] ✅ **MELHORIA**: Exclusão em cascata (produtor → fazendas)
 - [x] ✅ **MELHORIA**: Sistema de toasts para feedback (sucesso/erro)
@@ -74,6 +75,7 @@
 - [x] ✅ **MELHORIA**: Feedback visual para todas as operações CRUD
 - [x] ✅ **MELHORIA**: Mensagens de erro contextuais para exclusão de cultura em uso
 - [x] ✅ **MELHORIA**: Toasts de sucesso para criação/edição/exclusão de todas as entidades
+- [x] ✅ **MELHORIA**: Correção da validação CNPJ conforme algoritmo oficial
 
 ## 6. Implementação das Regras de Negócio
 

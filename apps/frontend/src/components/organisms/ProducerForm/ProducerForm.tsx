@@ -146,20 +146,23 @@ const validateCNPJ = (cnpj: string): boolean => {
     return false;
   }
 
+  // Primeiro dígito verificador
   const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  const weights2 = [6, 7, 8, 9, 2, 3, 4, 5, 6, 7, 8, 9];
-
   let sum = 0;
   for (let i = 0; i < 12; i++) {
     sum += parseInt(cnpj[i]) * weights1[i];
   }
-  let digit1 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  const remainder1 = sum % 11;
+  const digit1 = remainder1 < 2 ? 0 : 11 - remainder1;
 
+  // Segundo dígito verificador
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
   sum = 0;
   for (let i = 0; i < 13; i++) {
     sum += parseInt(cnpj[i]) * weights2[i];
   }
-  let digit2 = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  const remainder2 = sum % 11;
+  const digit2 = remainder2 < 2 ? 0 : 11 - remainder2;
 
   return digit1 === parseInt(cnpj[12]) && digit2 === parseInt(cnpj[13]);
 };
@@ -168,12 +171,22 @@ const validateCNPJ = (cnpj: string): boolean => {
 const validateDocument = (document: string): string | null => {
   const clean = document.replace(/[^\d]/g, '');
   
+  // Se não tem nenhum dígito, retorna obrigatório
+  if (clean.length === 0) {
+    return 'Documento é obrigatório';
+  }
+  
+  // Se tem 11 dígitos, valida como CPF
   if (clean.length === 11) {
     return validateCPF(clean) ? null : 'CPF inválido';
-  } else if (clean.length === 14) {
+  } 
+  // Se tem 14 dígitos, valida como CNPJ
+  else if (clean.length === 14) {
     return validateCNPJ(clean) ? null : 'CNPJ inválido';
-  } else {
-    return 'Documento deve ter 11 dígitos (CPF) ou 14 dígitos (CNPJ)';
+  } 
+  // Se não tem 11 nem 14 dígitos, considera incompleto (não mostrar erro ainda)
+  else {
+    return null; // Não mostrar erro enquanto o usuário está digitando
   }
 };
 
@@ -222,9 +235,19 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
     if (!formData.document.trim()) {
       newErrors.document = 'Documento é obrigatório';
     } else {
-      const documentError = validateDocument(formData.document);
-      if (documentError) {
-        newErrors.document = documentError;
+      const clean = formData.document.replace(/[^\d]/g, '');
+      
+      // Verificar se tem o número correto de dígitos
+      if (personType === 'PF' && clean.length !== 11) {
+        newErrors.document = 'CPF deve ter 11 dígitos';
+      } else if (personType === 'PJ' && clean.length !== 14) {
+        newErrors.document = 'CNPJ deve ter 14 dígitos';
+      } else {
+        // Se tem o número correto de dígitos, validar
+        const documentError = validateDocument(formData.document);
+        if (documentError) {
+          newErrors.document = documentError;
+        }
       }
     }
 
