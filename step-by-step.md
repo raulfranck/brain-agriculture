@@ -42,11 +42,14 @@
 
 ## 5. Frontend – Setup Inicial e Atomic Design
 
-- [ ] Configurar estrutura baseada em atomic design
-- [ ] Instalar Redux Toolkit, RTK Query, Styled-Components, etc.
-- [ ] Configurar camada de serviços para comunicação com backend
-- [ ] Adicionar tipagem compartilhada via `libs/types`
-- [ ] Configurar variáveis de ambiente para URL do backend
+- [x] Configurar estrutura baseada em atomic design
+- [x] Instalar Redux Toolkit, RTK Query, Styled-Components, etc.
+- [x] Configurar camada de serviços para comunicação com backend
+- [x] Adicionar tipagem compartilhada via `libs/types`
+- [x] Configurar variáveis de ambiente para URL do backend
+- [ ] Implementar dashboard analítico no frontend
+- [ ] Criar gráficos de pizza (estado, cultura, uso do solo)
+- [ ] Exibir totais de fazendas e hectares
 
 ## 6. Implementação das Regras de Negócio
 
@@ -68,12 +71,6 @@
 - [ ] Configurar ESLint, Prettier, Husky e lint-staged
 - [ ] Adicionar Prometheus metrics no backend (`/metrics`)
 - [ ] Adicionar badge de status do CI no README
-
-## 9. Dashboard e Funcionalidades Avançadas
-
-- [ ] Implementar dashboard analítico no frontend
-- [ ] Criar gráficos de pizza (estado, cultura, uso do solo)
-- [ ] Exibir totais de fazendas e hectares
 
 ## 10. Documentação e Extras
 

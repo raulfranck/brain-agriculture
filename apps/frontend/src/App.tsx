@@ -1,44 +1,20 @@
-import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Layout } from './components/templates/Layout/Layout';
+import { Dashboard } from './pages/Dashboard/Dashboard';
+import { Producers } from './pages/Producers/Producers';
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [health, setHealth] = useState<string>('...')
-
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/health`)
-      .then(res => res.json())
-      .then(data => setHealth(data.status))
-      .catch(() => setHealth('error'))
-  }, [])
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <h2>Backend health: {health}</h2>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/producers" element={<Producers />} />
+          <Route path="/analytics" element={<div style={{ padding: '24px' }}>Página de análises em desenvolvimento...</div>} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 }
 
-export default App
+export default App;
