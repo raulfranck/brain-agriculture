@@ -9,6 +9,8 @@ import { AppService } from './app.service';
 import { ProducerModule } from './modules/producer/producer.module';
 import { FarmModule } from './modules/farm/farm.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CropModule } from './modules/crop/crop.module';
+import { HarvestModule } from './modules/harvest/harvest.module';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 
 @Module({
@@ -63,6 +65,8 @@ import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
     ProducerModule,
     FarmModule,
     DashboardModule,
+    CropModule,
+    HarvestModule,
   ],
   controllers: [AppController],
   providers: [

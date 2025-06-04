@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { BarChart3, Users, Truck, Leaf } from 'lucide-react';
+import { BarChart3, Users, Truck, Leaf, Sprout } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -104,6 +104,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <NavLink to="/farms" $isActive={isActive('/farms')}>
             <Truck size={20} />
             Fazendas
+          </NavLink>
+
+          <NavLink to="/crops" $isActive={isActive('/crops')}>
+            <Sprout size={20} />
+            Culturas
           </NavLink>
           
           <NavLink to="/analytics" $isActive={isActive('/analytics')}>

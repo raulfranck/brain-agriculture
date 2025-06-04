@@ -79,7 +79,7 @@
 
 ## 10. Documentação e Extras
 
-- [ ] Documentar endpoints no Swagger
+- [x] Documentar endpoints no Swagger
 - [ ] Criar README detalhado com instruções de uso e desenvolvimento
 - [ ] Adicionar seeds de dados para testes manuais
 - [ ] Criar diagrama de entidades (ex: dbdiagram.io)

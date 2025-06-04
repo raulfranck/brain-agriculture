@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Trash2, Edit, MapPin, Ruler } from 'lucide-react';
+import { Trash2, Edit, MapPin, Ruler, Sprout } from 'lucide-react';
 import { Card } from '../../molecules/Card/Card';
 import { Button } from '../../atoms';
-import { useGetFarmsQuery, useDeleteFarmMutation } from '../../../store/api';
+import { useGetFarmsQuery, useDeleteFarmMutation, useGetHarvestsQuery } from '../../../store/api';
 import type { Farm } from '@libs/types';
 
 const Container = styled.div`
@@ -100,6 +100,51 @@ const UsageText = styled.div<{ isOverLimit: boolean }>`
   text-align: center;
 `;
 
+const HarvestContainer = styled.div`
+  margin: 12px 0;
+  padding: 12px;
+  background: #ecfdf5;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+`;
+
+const HarvestHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #065f46;
+`;
+
+const HarvestList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const HarvestItem = styled.div`
+  font-size: 13px;
+  color: #064e3b;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const HarvestYear = styled.span`
+  font-weight: 500;
+`;
+
+const HarvestCrops = styled.span`
+  color: #047857;
+`;
+
+const NoHarvests = styled.div`
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+`;
+
 const ActionsContainer = styled.div`
   display: flex;
   gap: 8px;
@@ -128,6 +173,136 @@ interface FarmListProps {
   onEdit?: (farm: Farm) => void;
 }
 
+interface FarmCardWithHarvestsProps {
+  farm: Farm;
+  onEdit?: (farm: Farm) => void;
+  onDelete: (id: string) => void;
+}
+
+const FarmCardWithHarvests: React.FC<FarmCardWithHarvestsProps> = ({ farm, onEdit, onDelete }) => {
+  const { data: harvests } = useGetHarvestsQuery(farm.id);
+
+  const calculateAreaUsage = (farm: Farm) => {
+    const usedArea = farm.arableArea + farm.vegetationArea;
+    const percentage = (usedArea / farm.totalArea) * 100;
+    const isOverLimit = usedArea > farm.totalArea;
+    
+    return { usedArea, percentage, isOverLimit };
+  };
+
+  const getHarvestSummary = () => {
+    if (!harvests || harvests.length === 0) return null;
+
+    const yearGroups = harvests.reduce((acc, harvest) => {
+      if (!acc[harvest.year]) {
+        acc[harvest.year] = [];
+      }
+      acc[harvest.year].push(harvest.crop?.name || 'Cultura desconhecida');
+      return acc;
+    }, {} as Record<number, string[]>);
+
+    return Object.entries(yearGroups)
+      .sort(([a], [b]) => parseInt(b) - parseInt(a)) // Ordenar por ano decrescente
+      .map(([year, crops]) => ({
+        year: parseInt(year),
+        crops: crops.join(', '),
+      }));
+  };
+
+  const { usedArea, percentage, isOverLimit } = calculateAreaUsage(farm);
+  const harvestSummary = getHarvestSummary();
+
+  return (
+    <FarmCard>
+      <FarmHeader>
+        <div>
+          <FarmName>{farm.name}</FarmName>
+          {farm.producer && (
+            <ProducerInfo>{farm.producer.name}</ProducerInfo>
+          )}
+        </div>
+      </FarmHeader>
+
+      <LocationContainer>
+        <MapPin size={16} />
+        <LocationText>
+          {farm.city}, {farm.state}
+        </LocationText>
+      </LocationContainer>
+
+      <AreaContainer>
+        <AreaRow>
+          <AreaLabel>
+            <Ruler size={14} style={{ marginRight: '4px' }} />
+            Área Total:
+          </AreaLabel>
+          <AreaValue highlight>{farm.totalArea.toFixed(2)} ha</AreaValue>
+        </AreaRow>
+        
+        <AreaRow>
+          <AreaLabel>Área Agricultável:</AreaLabel>
+          <AreaValue>{farm.arableArea.toFixed(2)} ha</AreaValue>
+        </AreaRow>
+        
+        <AreaRow>
+          <AreaLabel>Área de Vegetação:</AreaLabel>
+          <AreaValue>{farm.vegetationArea.toFixed(2)} ha</AreaValue>
+        </AreaRow>
+
+        <AreaUsage>
+          <UsageBar>
+            <UsageProgress percentage={percentage} isOverLimit={isOverLimit} />
+          </UsageBar>
+          <UsageText isOverLimit={isOverLimit}>
+            {usedArea.toFixed(2)} ha utilizados ({percentage.toFixed(1)}%)
+            {isOverLimit && ' - Excede limite!'}
+          </UsageText>
+        </AreaUsage>
+      </AreaContainer>
+
+      <HarvestContainer>
+        <HarvestHeader>
+          <Sprout size={16} />
+          Safras e Culturas
+        </HarvestHeader>
+        <HarvestList>
+          {harvestSummary && harvestSummary.length > 0 ? (
+            harvestSummary.map(({ year, crops }) => (
+              <HarvestItem key={year}>
+                <HarvestYear>{year}:</HarvestYear>
+                <HarvestCrops>{crops}</HarvestCrops>
+              </HarvestItem>
+            ))
+          ) : (
+            <NoHarvests>Nenhuma safra cadastrada</NoHarvests>
+          )}
+        </HarvestList>
+      </HarvestContainer>
+
+      <ActionsContainer>
+        {onEdit && (
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={() => onEdit(farm)}
+          >
+            <Edit size={16} />
+            Editar
+          </Button>
+        )}
+        <Button
+          variant="danger"
+          size="small"
+          onClick={() => onDelete(farm.id)}
+        >
+          <Trash2 size={16} />
+          Excluir
+        </Button>
+      </ActionsContainer>
+    </FarmCard>
+  );
+};
+
 export const FarmList: React.FC<FarmListProps> = ({ onEdit }) => {
   const { data: farms, isLoading, error } = useGetFarmsQuery();
   const [deleteFarm] = useDeleteFarmMutation();
@@ -140,14 +315,6 @@ export const FarmList: React.FC<FarmListProps> = ({ onEdit }) => {
         console.error('Erro ao excluir fazenda:', error);
       }
     }
-  };
-
-  const calculateAreaUsage = (farm: Farm) => {
-    const usedArea = farm.arableArea + farm.vegetationArea;
-    const percentage = (usedArea / farm.totalArea) * 100;
-    const isOverLimit = usedArea > farm.totalArea;
-    
-    return { usedArea, percentage, isOverLimit };
   };
 
   if (isLoading) {
@@ -164,80 +331,14 @@ export const FarmList: React.FC<FarmListProps> = ({ onEdit }) => {
 
   return (
     <Container>
-      {farms.map((farm) => {
-        const { usedArea, percentage, isOverLimit } = calculateAreaUsage(farm);
-        
-        return (
-          <FarmCard key={farm.id}>
-            <FarmHeader>
-              <div>
-                <FarmName>{farm.name}</FarmName>
-                {farm.producer && (
-                  <ProducerInfo>{farm.producer.name}</ProducerInfo>
-                )}
-              </div>
-            </FarmHeader>
-
-            <LocationContainer>
-              <MapPin size={16} />
-              <LocationText>
-                {farm.city}, {farm.state}
-              </LocationText>
-            </LocationContainer>
-
-            <AreaContainer>
-              <AreaRow>
-                <AreaLabel>
-                  <Ruler size={14} style={{ marginRight: '4px' }} />
-                  Área Total:
-                </AreaLabel>
-                <AreaValue highlight>{farm.totalArea.toFixed(2)} ha</AreaValue>
-              </AreaRow>
-              
-              <AreaRow>
-                <AreaLabel>Área Agricultável:</AreaLabel>
-                <AreaValue>{farm.arableArea.toFixed(2)} ha</AreaValue>
-              </AreaRow>
-              
-              <AreaRow>
-                <AreaLabel>Área de Vegetação:</AreaLabel>
-                <AreaValue>{farm.vegetationArea.toFixed(2)} ha</AreaValue>
-              </AreaRow>
-
-              <AreaUsage>
-                <UsageBar>
-                  <UsageProgress percentage={percentage} isOverLimit={isOverLimit} />
-                </UsageBar>
-                <UsageText isOverLimit={isOverLimit}>
-                  {usedArea.toFixed(2)} ha utilizados ({percentage.toFixed(1)}%)
-                  {isOverLimit && ' - Excede limite!'}
-                </UsageText>
-              </AreaUsage>
-            </AreaContainer>
-
-            <ActionsContainer>
-              {onEdit && (
-                <Button
-                  variant="secondary"
-                  size="small"
-                  onClick={() => onEdit(farm)}
-                >
-                  <Edit size={16} />
-                  Editar
-                </Button>
-              )}
-              <Button
-                variant="danger"
-                size="small"
-                onClick={() => handleDelete(farm.id)}
-              >
-                <Trash2 size={16} />
-                Excluir
-              </Button>
-            </ActionsContainer>
-          </FarmCard>
-        );
-      })}
+      {farms.map((farm) => (
+        <FarmCardWithHarvests
+          key={farm.id}
+          farm={farm}
+          onEdit={onEdit}
+          onDelete={handleDelete}
+        />
+      ))}
     </Container>
   );
 }; 

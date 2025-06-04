@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { X } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { Button, Input } from '../../atoms';
-import { useCreateFarmMutation, useUpdateFarmMutation, useGetProducersQuery } from '../../../store/api';
-import type { Farm, CreateFarmDto, UpdateFarmDto, Producer } from '@libs/types';
+import { 
+  useCreateFarmMutation, 
+  useUpdateFarmMutation, 
+  useGetProducersQuery,
+  useGetCropsQuery,
+  useGetHarvestsQuery,
+  useCreateHarvestMutation,
+  useDeleteHarvestMutation 
+} from '../../../store/api';
+import type { Farm, CreateFarmDto, UpdateFarmDto, Producer, Crop } from '@libs/types';
 
 interface FarmFormProps {
   farm?: Farm;
   onClose: () => void;
   onSuccess: () => void;
+}
+
+interface HarvestData {
+  id?: string;
+  year: number;
+  cropId: string;
+  cropName?: string;
 }
 
 const Overlay = styled.div`
@@ -29,7 +44,7 @@ const Modal = styled.div`
   border-radius: 12px;
   padding: 24px;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -65,6 +80,23 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 16px;
+`;
+
+const Section = styled.div`
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9fafb;
+`;
+
+const SectionTitle = styled.h3`
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const Select = styled.select<{ hasError?: boolean }>`
@@ -132,6 +164,81 @@ const AreaValidation = styled.div<{ isValid: boolean }>`
   font-weight: 500;
 `;
 
+const HarvestContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const HarvestRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 12px;
+  align-items: end;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+`;
+
+const AddHarvestButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: #059669;
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+`;
+
+const RemoveButton = styled.button`
+  padding: 8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: #dc2626;
+  }
+`;
+
+const HarvestSummary = styled.div`
+  margin-top: 16px;
+  padding: 12px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+`;
+
+const SummaryTitle = styled.div`
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 8px;
+`;
+
+const SummaryList = styled.div`
+  font-size: 14px;
+  color: #064e3b;
+`;
+
 export const FarmForm: React.FC<FarmFormProps> = ({
   farm,
   onClose,
@@ -148,9 +255,20 @@ export const FarmForm: React.FC<FarmFormProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   
+  // Estado para as safras
+  const [harvests, setHarvests] = useState<HarvestData[]>([]);
+  const [newHarvest, setNewHarvest] = useState({
+    year: new Date().getFullYear(),
+    cropId: '',
+  });
+  
   const { data: producers } = useGetProducersQuery();
+  const { data: crops } = useGetCropsQuery();
+  const { data: existingHarvests } = useGetHarvestsQuery(farm?.id, { skip: !farm?.id });
   const [createFarm, { isLoading: isCreating }] = useCreateFarmMutation();
   const [updateFarm, { isLoading: isUpdating }] = useUpdateFarmMutation();
+  const [createHarvest] = useCreateHarvestMutation();
+  const [deleteHarvest] = useDeleteHarvestMutation();
 
   const isEditing = !!farm;
   const isLoading = isCreating || isUpdating;
@@ -168,6 +286,18 @@ export const FarmForm: React.FC<FarmFormProps> = ({
       });
     }
   }, [farm]);
+
+  useEffect(() => {
+    if (existingHarvests && crops) {
+      const harvestsWithCropNames = existingHarvests.map(harvest => ({
+        id: harvest.id,
+        year: harvest.year,
+        cropId: harvest.cropId,
+        cropName: harvest.crop?.name || crops.find(c => c.id === harvest.cropId)?.name
+      }));
+      setHarvests(harvestsWithCropNames);
+    }
+  }, [existingHarvests, crops]);
 
   const calculateUsedArea = () => {
     const arable = parseFloat(formData.arableArea) || 0;
@@ -244,6 +374,8 @@ export const FarmForm: React.FC<FarmFormProps> = ({
         producerId: formData.producerId,
       };
 
+      let farmId: string;
+
       if (isEditing && farm) {
         const updateData: UpdateFarmDto = {
           name: farmData.name,
@@ -254,9 +386,24 @@ export const FarmForm: React.FC<FarmFormProps> = ({
           vegetationArea: farmData.vegetationArea,
         };
         await updateFarm({ id: farm.id, updates: updateData }).unwrap();
+        farmId = farm.id;
       } else {
         const createData: CreateFarmDto = farmData;
-        await createFarm(createData).unwrap();
+        const newFarm = await createFarm(createData).unwrap();
+        farmId = newFarm.id;
+      }
+
+      // Salvar novas safras (apenas para fazendas novas ou safras adicionadas)
+      if (!isEditing) {
+        for (const harvest of harvests) {
+          if (!harvest.id) {
+            await createHarvest({
+              year: harvest.year,
+              farmId,
+              cropId: harvest.cropId,
+            }).unwrap();
+          }
+        }
       }
 
       onSuccess();
@@ -279,10 +426,90 @@ export const FarmForm: React.FC<FarmFormProps> = ({
     }
   };
 
+  const addHarvest = async () => {
+    if (!newHarvest.cropId) return;
+
+    const crop = crops?.find(c => c.id === newHarvest.cropId);
+    if (!crop) return;
+
+    // Verificar se já existe esta combinação ano + cultura
+    const exists = harvests.some(h => h.year === newHarvest.year && h.cropId === newHarvest.cropId);
+    if (exists) {
+      alert('Esta cultura já foi adicionada para este ano');
+      return;
+    }
+
+    if (isEditing && farm) {
+      // Se estamos editando, criar a safra diretamente no backend
+      try {
+        const newHarvestData = await createHarvest({
+          year: newHarvest.year,
+          farmId: farm.id,
+          cropId: newHarvest.cropId,
+        }).unwrap();
+
+        setHarvests(prev => [...prev, {
+          id: newHarvestData.id,
+          year: newHarvest.year,
+          cropId: newHarvest.cropId,
+          cropName: crop.name,
+        }]);
+      } catch (error) {
+        console.error('Erro ao adicionar safra:', error);
+        alert('Erro ao adicionar safra');
+        return;
+      }
+    } else {
+      // Se é uma fazenda nova, adicionar à lista local
+      setHarvests(prev => [...prev, {
+        year: newHarvest.year,
+        cropId: newHarvest.cropId,
+        cropName: crop.name,
+      }]);
+    }
+
+    setNewHarvest({
+      year: new Date().getFullYear(),
+      cropId: '',
+    });
+  };
+
+  const removeHarvest = async (index: number) => {
+    const harvest = harvests[index];
+    
+    if (harvest.id && isEditing) {
+      // Se tem ID, deletar do backend
+      try {
+        await deleteHarvest(harvest.id).unwrap();
+      } catch (error) {
+        console.error('Erro ao remover safra:', error);
+        alert('Erro ao remover safra');
+        return;
+      }
+    }
+
+    setHarvests(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
+  };
+
+  const getHarvestSummary = () => {
+    const yearGroups = harvests.reduce((acc, harvest) => {
+      if (!acc[harvest.year]) {
+        acc[harvest.year] = [];
+      }
+      acc[harvest.year].push(harvest.cropName || 'Cultura desconhecida');
+      return acc;
+    }, {} as Record<number, string[]>);
+
+    return Object.entries(yearGroups).map(([year, cropNames]) => ({
+      year: parseInt(year),
+      crops: cropNames,
+    }));
   };
 
   return (
@@ -296,100 +523,188 @@ export const FarmForm: React.FC<FarmFormProps> = ({
         </Header>
 
         <Form onSubmit={handleSubmit}>
-          <Input
-            label="Nome da Fazenda"
-            placeholder="Nome da propriedade"
-            value={formData.name}
-            onChange={(value) => handleChange('name', value)}
-            error={errors.name}
-            required
-          />
+          <Section>
+            <SectionTitle>Informações Básicas</SectionTitle>
+            
+            <Input
+              label="Nome da Fazenda"
+              placeholder="Nome da propriedade"
+              value={formData.name}
+              onChange={(value) => handleChange('name', value)}
+              error={errors.name}
+              required
+            />
 
-          {!isEditing && (
-            <SelectContainer>
-              <Label>
-                Produtor <span style={{ color: '#ef4444' }}>*</span>
-              </Label>
-              <Select
-                value={formData.producerId}
-                onChange={(e) => handleChange('producerId', e.target.value)}
-                hasError={!!errors.producerId}
-                required
-              >
-                <option value="">Selecione um produtor</option>
-                {producers?.map((producer) => (
-                  <option key={producer.id} value={producer.id}>
-                    {producer.name} - {producer.document}
-                  </option>
-                ))}
-              </Select>
-              {errors.producerId && <ErrorMessage>{errors.producerId}</ErrorMessage>}
-            </SelectContainer>
-          )}
+            {!isEditing && (
+              <SelectContainer>
+                <Label>
+                  Produtor <span style={{ color: '#ef4444' }}>*</span>
+                </Label>
+                <Select
+                  value={formData.producerId}
+                  onChange={(e) => handleChange('producerId', e.target.value)}
+                  hasError={!!errors.producerId}
+                  required
+                >
+                  <option value="">Selecione um produtor</option>
+                  {producers?.map((producer) => (
+                    <option key={producer.id} value={producer.id}>
+                      {producer.name} - {producer.document}
+                    </option>
+                  ))}
+                </Select>
+                {errors.producerId && <ErrorMessage>{errors.producerId}</ErrorMessage>}
+              </SelectContainer>
+            )}
 
-          <Input
-            label="Cidade"
-            placeholder="Cidade onde está localizada"
-            value={formData.city}
-            onChange={(value) => handleChange('city', value)}
-            error={errors.city}
-            required
-          />
+            <Input
+              label="Cidade"
+              placeholder="Cidade onde está localizada"
+              value={formData.city}
+              onChange={(value) => handleChange('city', value)}
+              error={errors.city}
+              required
+            />
 
-          <Input
-            label="Estado"
-            placeholder="SP, RJ, MG..."
-            value={formData.state}
-            onChange={(value) => handleChange('state', value)}
-            error={errors.state}
-            required
-          />
+            <Input
+              label="Estado"
+              placeholder="SP, RJ, MG..."
+              value={formData.state}
+              onChange={(value) => handleChange('state', value)}
+              error={errors.state}
+              required
+            />
+          </Section>
 
-          <Input
-            label="Área Total (hectares)"
-            placeholder="0.00"
-            type="number"
-            value={formData.totalArea}
-            onChange={(value) => handleChange('totalArea', value)}
-            error={errors.totalArea}
-            required
-          />
+          <Section>
+            <SectionTitle>Áreas (hectares)</SectionTitle>
+            
+            <Input
+              label="Área Total"
+              placeholder="0.00"
+              type="number"
+              value={formData.totalArea}
+              onChange={(value) => handleChange('totalArea', value)}
+              error={errors.totalArea}
+              required
+            />
 
-          <Input
-            label="Área Agricultável (hectares)"
-            placeholder="0.00"
-            type="number"
-            value={formData.arableArea}
-            onChange={(value) => handleChange('arableArea', value)}
-            error={errors.arableArea}
-            required
-          />
+            <Input
+              label="Área Agricultável"
+              placeholder="0.00"
+              type="number"
+              value={formData.arableArea}
+              onChange={(value) => handleChange('arableArea', value)}
+              error={errors.arableArea}
+              required
+            />
 
-          <Input
-            label="Área de Vegetação (hectares)"
-            placeholder="0.00"
-            type="number"
-            value={formData.vegetationArea}
-            onChange={(value) => handleChange('vegetationArea', value)}
-            error={errors.vegetationArea}
-            required
-          />
+            <Input
+              label="Área de Vegetação"
+              placeholder="0.00"
+              type="number"
+              value={formData.vegetationArea}
+              onChange={(value) => handleChange('vegetationArea', value)}
+              error={errors.vegetationArea}
+              required
+            />
 
-          {(formData.totalArea || formData.arableArea || formData.vegetationArea) && (
-            <AreaInfo>
-              <AreaCalculation>
-                Área utilizada: {calculateUsedArea().toFixed(2)} / {getTotalArea().toFixed(2)} hectares
-              </AreaCalculation>
-              <AreaValidation isValid={isAreaValid()}>
-                {isAreaValid() 
-                  ? '✓ Áreas dentro do limite permitido' 
-                  : '⚠ Soma das áreas excede a área total'
-                }
-              </AreaValidation>
-            </AreaInfo>
-          )}
+            {(formData.totalArea || formData.arableArea || formData.vegetationArea) && (
+              <AreaInfo>
+                <AreaCalculation>
+                  Área utilizada: {calculateUsedArea().toFixed(2)} / {getTotalArea().toFixed(2)} hectares
+                </AreaCalculation>
+                <AreaValidation isValid={isAreaValid()}>
+                  {isAreaValid() 
+                    ? '✓ Áreas dentro do limite permitido' 
+                    : '⚠ Soma das áreas excede a área total'
+                  }
+                </AreaValidation>
+              </AreaInfo>
+            )}
 
-          {errors.areas && <ErrorMessage>{errors.areas}</ErrorMessage>}
+            {errors.areas && <ErrorMessage>{errors.areas}</ErrorMessage>}
+          </Section>
+
+          <Section>
+            <SectionTitle>Safras e Culturas</SectionTitle>
+            
+            <HarvestContainer>
+              {/* Adicionar nova safra */}
+              <HarvestRow>
+                <Input
+                  label="Ano"
+                  type="number"
+                  value={newHarvest.year.toString()}
+                  onChange={(value) => setNewHarvest(prev => ({ ...prev, year: parseInt(value) || new Date().getFullYear() }))}
+                />
+                
+                <SelectContainer>
+                  <Label>Cultura</Label>
+                  <Select
+                    value={newHarvest.cropId}
+                    onChange={(e) => setNewHarvest(prev => ({ ...prev, cropId: e.target.value }))}
+                  >
+                    <option value="">Selecione uma cultura</option>
+                    {crops?.map((crop) => (
+                      <option key={crop.id} value={crop.id}>
+                        {crop.name}
+                      </option>
+                    ))}
+                  </Select>
+                </SelectContainer>
+
+                <AddHarvestButton
+                  type="button"
+                  onClick={addHarvest}
+                  disabled={!newHarvest.cropId}
+                >
+                  <Plus size={16} />
+                  Adicionar
+                </AddHarvestButton>
+              </HarvestRow>
+
+              {/* Lista de safras adicionadas */}
+              {harvests.map((harvest, index) => (
+                <HarvestRow key={`${harvest.year}-${harvest.cropId}-${index}`}>
+                  <div>
+                    <Label>Ano</Label>
+                    <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', fontWeight: '500' }}>
+                      {harvest.year}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Cultura</Label>
+                    <div style={{ padding: '12px', background: '#f9fafb', borderRadius: '6px', fontWeight: '500' }}>
+                      {harvest.cropName}
+                    </div>
+                  </div>
+
+                  <RemoveButton
+                    type="button"
+                    onClick={() => removeHarvest(index)}
+                  >
+                    <Trash2 size={16} />
+                  </RemoveButton>
+                </HarvestRow>
+              ))}
+            </HarvestContainer>
+
+            {harvests.length > 0 && (
+              <HarvestSummary>
+                <SummaryTitle>Resumo das Safras:</SummaryTitle>
+                <SummaryList>
+                  {getHarvestSummary().map(({ year, crops }) => (
+                    <div key={year}>
+                      <strong>{year}:</strong> {crops.join(', ')}
+                    </div>
+                  ))}
+                </SummaryList>
+              </HarvestSummary>
+            )}
+          </Section>
+
           {errors.submit && <ErrorMessage>{errors.submit}</ErrorMessage>}
 
           <ButtonGroup>

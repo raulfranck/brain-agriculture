@@ -9,6 +9,7 @@ interface ButtonProps {
   loading?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  icon?: React.ReactNode;
 }
 
 const StyledButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'disabled' | 'loading'>>`
@@ -21,6 +22,7 @@ const StyledButton = styled.button<Pick<ButtonProps, 'variant' | 'size' | 'disab
   align-items: center;
   justify-content: center;
   font-family: inherit;
+  gap: 8px;
 
   ${({ size }) => {
     switch (size) {
@@ -90,6 +92,7 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   onClick,
   type = 'button',
+  icon,
   ...props
 }) => {
   return (
@@ -101,6 +104,7 @@ export const Button: React.FC<ButtonProps> = ({
       type={type}
       {...props}
     >
+      {icon && !loading && icon}
       {loading ? 'Carregando...' : children}
     </StyledButton>
   );

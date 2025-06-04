@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, BeforeUpdate, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Producer } from '../../producer/entities/producer.entity';
 import { BadRequestException } from '@nestjs/common';
+import { Harvest } from '../../harvest/entities/harvest.entity';
 
 @Entity()
 export class Farm {
@@ -68,6 +69,9 @@ export class Farm {
   @ManyToOne(() => Producer, (producer) => producer.farms)
   @JoinColumn({ name: 'producerId' })
   producer: Producer;
+
+  @OneToMany(() => Harvest, (harvest) => harvest.farm)
+  harvests: Harvest[];
 
   @BeforeInsert()
   @BeforeUpdate()
