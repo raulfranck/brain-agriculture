@@ -59,6 +59,14 @@ export class CropService {
 
   async remove(id: string): Promise<void> {
     const crop = await this.findOne(id);
+    
+    // Verificar se a cultura está sendo usada em alguma safra
+    if (crop.harvests && crop.harvests.length > 0) {
+      throw new ConflictException(
+        `Não é possível excluir a cultura "${crop.name}" pois ela está sendo utilizada em ${crop.harvests.length} safra${crop.harvests.length > 1 ? 's' : ''}`
+      );
+    }
+    
     await this.cropRepository.remove(crop);
   }
 } 

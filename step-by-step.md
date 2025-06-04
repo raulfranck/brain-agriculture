@@ -60,6 +60,21 @@
 - [x] ✅ **CORRIGIDO**: Cálculo correto da distribuição por cultura
 - [x] ✅ **IMPLEMENTADO**: Filtro por produtor no dashboard
 
+## 5.1. Melhorias de UX/UI
+
+- [x] ✅ **MELHORIA**: Máscara dinâmica para campos CPF/CNPJ
+- [x] ✅ **MELHORIA**: Validação para impedir números negativos em hectares
+- [x] ✅ **MELHORIA**: Exclusão em cascata (produtor → fazendas)
+- [x] ✅ **MELHORIA**: Sistema de toasts para feedback (sucesso/erro)
+- [x] ✅ **MELHORIA**: Modal de confirmação para exclusões
+- [x] ✅ **MELHORIA**: Mensagem específica sobre exclusão em cascata
+- [x] ✅ **MELHORIA**: Validação para impedir exclusão de cultura em uso
+- [x] ✅ **MELHORIA**: Substituição completa de alert() por toasts
+- [x] ✅ **MELHORIA**: Substituição completa de window.confirm() por modais
+- [x] ✅ **MELHORIA**: Feedback visual para todas as operações CRUD
+- [x] ✅ **MELHORIA**: Mensagens de erro contextuais para exclusão de cultura em uso
+- [x] ✅ **MELHORIA**: Toasts de sucesso para criação/edição/exclusão de todas as entidades
+
 ## 6. Implementação das Regras de Negócio
 
 - [x] Implementar entidades, DTOs, validações (`class-validator`)
@@ -85,5 +100,4 @@
 
 - [x] Documentar endpoints no Swagger
 - [ ] Criar README detalhado com instruções de uso e desenvolvimento
-- [ ] Adicionar seeds de dados para testes manuais
 - [ ] Criar diagrama de entidades (ex: dbdiagram.io)

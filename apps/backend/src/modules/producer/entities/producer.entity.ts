@@ -44,6 +44,6 @@ export class Producer {
     description: 'Lista de fazendas pertencentes ao produtor',
     isArray: true
   })
-  @OneToMany(() => Farm, (farm) => farm.producer)
+  @OneToMany(() => Farm, (farm) => farm.producer, { cascade: ['remove'], onDelete: 'CASCADE' })
   farms: Farm[];
 } 

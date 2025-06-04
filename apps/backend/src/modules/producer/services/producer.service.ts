@@ -161,15 +161,16 @@ export class ProducerService {
 
     const producer = await this.findOne(id);
     
+    // Excluir fazendas associadas primeiro (cascata)
     if (producer.farms && producer.farms.length > 0) {
-      this.logger.warn({
+      this.logger.log({
         operation: 'producer.remove',
         producerId: id,
         farmsCount: producer.farms.length,
-        duration: Date.now() - startTime,
-      }, 'Tentativa de remover produtor com fazendas associadas');
+      }, 'Removendo fazendas associadas ao produtor');
       
-      throw new ConflictException('Não é possível remover um produtor que possui fazendas');
+      // Aqui o TypeORM vai lidar com a exclusão em cascata automaticamente
+      // devido à configuração cascade: ['remove'] na entidade
     }
 
     await this.producerRepository.remove(producer);
@@ -177,7 +178,8 @@ export class ProducerService {
     this.logger.log({
       operation: 'producer.remove',
       producerId: id,
+      farmsRemoved: producer.farms?.length || 0,
       duration: Date.now() - startTime,
-    }, 'Produtor removido com sucesso');
+    }, 'Produtor e suas fazendas removidos com sucesso');
   }
 } 

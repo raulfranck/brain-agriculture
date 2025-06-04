@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Trash2, Edit, MapPin, Ruler, Sprout } from 'lucide-react';
 import { Card } from '../../molecules/Card/Card';
+import { ConfirmModal } from '../../molecules/ConfirmModal/ConfirmModal';
 import { Button } from '../../atoms';
 import { useGetFarmsQuery, useDeleteFarmMutation, useGetHarvestsQuery } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import type { Farm } from '@libs/types';
 
 const Container = styled.div`
@@ -176,7 +178,7 @@ interface FarmListProps {
 interface FarmCardWithHarvestsProps {
   farm: Farm;
   onEdit?: (farm: Farm) => void;
-  onDelete: (id: string) => void;
+  onDelete: (farm: Farm) => void;
 }
 
 const FarmCardWithHarvests: React.FC<FarmCardWithHarvestsProps> = ({ farm, onEdit, onDelete }) => {
@@ -293,7 +295,7 @@ const FarmCardWithHarvests: React.FC<FarmCardWithHarvestsProps> = ({ farm, onEdi
         <Button
           variant="danger"
           size="small"
-          onClick={() => onDelete(farm.id)}
+          onClick={() => onDelete(farm)}
         >
           <Trash2 size={16} />
           Excluir
@@ -306,14 +308,35 @@ const FarmCardWithHarvests: React.FC<FarmCardWithHarvestsProps> = ({ farm, onEdi
 export const FarmList: React.FC<FarmListProps> = ({ onEdit }) => {
   const { data: farms, isLoading, error } = useGetFarmsQuery();
   const [deleteFarm] = useDeleteFarmMutation();
+  const { success, error: showError } = useToastContext();
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    farmId?: string;
+    farmName?: string;
+  }>({
+    isOpen: false,
+  });
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta fazenda?')) {
-      try {
-        await deleteFarm(id).unwrap();
-      } catch (error) {
-        console.error('Erro ao excluir fazenda:', error);
-      }
+  const handleDeleteClick = (farm: Farm) => {
+    setConfirmModal({
+      isOpen: true,
+      farmId: farm.id,
+      farmName: farm.name,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.farmId) return;
+
+    try {
+      await deleteFarm(confirmModal.farmId).unwrap();
+      success(`Fazenda ${confirmModal.farmName} excluída com sucesso!`);
+      setConfirmModal({ isOpen: false });
+    } catch (error) {
+      console.error('Erro ao excluir fazenda:', error);
+      showError('Erro ao excluir fazenda. Tente novamente.');
+      setConfirmModal({ isOpen: false });
     }
   };
 
@@ -330,15 +353,28 @@ export const FarmList: React.FC<FarmListProps> = ({ onEdit }) => {
   }
 
   return (
-    <Container>
-      {farms.map((farm) => (
-        <FarmCardWithHarvests
-          key={farm.id}
-          farm={farm}
-          onEdit={onEdit}
-          onDelete={handleDelete}
-        />
-      ))}
-    </Container>
+    <>
+      <Container>
+        {farms.map((farm) => (
+          <FarmCardWithHarvests
+            key={farm.id}
+            farm={farm}
+            onEdit={onEdit}
+            onDelete={handleDeleteClick}
+          />
+        ))}
+      </Container>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onCancel={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir a fazenda "${confirmModal.farmName}"?`}
+        variant="danger"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
+    </>
   );
 }; 

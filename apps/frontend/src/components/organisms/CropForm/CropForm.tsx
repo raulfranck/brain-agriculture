@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { Button } from '../../atoms/Button/Button';
 import { Input } from '../../atoms/Input/Input';
 import { useCreateCropMutation, useUpdateCropMutation } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import type { Crop } from '@libs/types/crop';
 
 interface CropFormProps {
@@ -120,6 +121,7 @@ export const CropForm: React.FC<CropFormProps> = ({ crop, onClose }) => {
 
   const [createCrop, { isLoading: isCreating }] = useCreateCropMutation();
   const [updateCrop, { isLoading: isUpdating }] = useUpdateCropMutation();
+  const { success, error: showError } = useToastContext();
 
   const isEditing = !!crop;
   const isLoading = isCreating || isUpdating;
@@ -160,8 +162,10 @@ export const CropForm: React.FC<CropFormProps> = ({ crop, onClose }) => {
           id: crop.id,
           updates: cropData,
         }).unwrap();
+        success(`Cultura ${name} atualizada com sucesso!`);
       } else {
         await createCrop(cropData).unwrap();
+        success(`Cultura ${name} criada com sucesso!`);
       }
 
       onClose();
@@ -171,7 +175,8 @@ export const CropForm: React.FC<CropFormProps> = ({ crop, onClose }) => {
       if (error?.data?.message?.includes('já existe')) {
         setErrors({ name: 'Uma cultura com este nome já existe' });
       } else {
-        alert('Erro ao salvar cultura');
+        const errorMessage = error?.data?.message || 'Erro ao salvar cultura';
+        showError(errorMessage);
       }
     }
   };

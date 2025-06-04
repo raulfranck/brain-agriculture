@@ -11,6 +11,7 @@ import {
   useCreateHarvestMutation,
   useDeleteHarvestMutation 
 } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import type { Farm, CreateFarmDto, UpdateFarmDto, Producer, Crop } from '@libs/types';
 
 interface FarmFormProps {
@@ -269,6 +270,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
   const [updateFarm, { isLoading: isUpdating }] = useUpdateFarmMutation();
   const [createHarvest] = useCreateHarvestMutation();
   const [deleteHarvest] = useDeleteHarvestMutation();
+  const { success, error: showError } = useToastContext();
 
   const isEditing = !!farm;
   const isLoading = isCreating || isUpdating;
@@ -387,10 +389,12 @@ export const FarmForm: React.FC<FarmFormProps> = ({
         };
         await updateFarm({ id: farm.id, updates: updateData }).unwrap();
         farmId = farm.id;
+        success(`Fazenda ${formData.name} atualizada com sucesso!`);
       } else {
         const createData: CreateFarmDto = farmData;
         const newFarm = await createFarm(createData).unwrap();
         farmId = newFarm.id;
+        success(`Fazenda ${formData.name} criada com sucesso!`);
       }
 
       // Salvar novas safras (apenas para fazendas novas ou safras adicionadas)
@@ -408,9 +412,11 @@ export const FarmForm: React.FC<FarmFormProps> = ({
 
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar fazenda:', error);
-      setErrors({ submit: 'Erro ao salvar fazenda. Tente novamente.' });
+      const errorMessage = error?.data?.message || 'Erro ao salvar fazenda. Tente novamente.';
+      showError(errorMessage);
+      setErrors({ submit: errorMessage });
     }
   };
 
@@ -435,7 +441,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
     // Verificar se já existe esta combinação ano + cultura
     const exists = harvests.some(h => h.year === newHarvest.year && h.cropId === newHarvest.cropId);
     if (exists) {
-      alert('Esta cultura já foi adicionada para este ano');
+      showError('Esta cultura já foi adicionada para este ano');
       return;
     }
 
@@ -454,9 +460,11 @@ export const FarmForm: React.FC<FarmFormProps> = ({
           cropId: newHarvest.cropId,
           cropName: crop.name,
         }]);
-      } catch (error) {
+        success(`Safra ${crop.name} ${newHarvest.year} adicionada com sucesso!`);
+      } catch (error: any) {
         console.error('Erro ao adicionar safra:', error);
-        alert('Erro ao adicionar safra');
+        const errorMessage = error?.data?.message || 'Erro ao adicionar safra';
+        showError(errorMessage);
         return;
       }
     } else {
@@ -466,6 +474,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
         cropId: newHarvest.cropId,
         cropName: crop.name,
       }]);
+      success(`Safra ${crop.name} ${newHarvest.year} adicionada!`);
     }
 
     setNewHarvest({
@@ -481,9 +490,11 @@ export const FarmForm: React.FC<FarmFormProps> = ({
       // Se tem ID, deletar do backend
       try {
         await deleteHarvest(harvest.id).unwrap();
-      } catch (error) {
+        success(`Safra ${harvest.cropName} ${harvest.year} removida com sucesso!`);
+      } catch (error: any) {
         console.error('Erro ao remover safra:', error);
-        alert('Erro ao remover safra');
+        const errorMessage = error?.data?.message || 'Erro ao remover safra';
+        showError(errorMessage);
         return;
       }
     }
@@ -586,6 +597,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
               value={formData.totalArea}
               onChange={(value) => handleChange('totalArea', value)}
               error={errors.totalArea}
+              min={0}
               required
             />
 
@@ -596,6 +608,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
               value={formData.arableArea}
               onChange={(value) => handleChange('arableArea', value)}
               error={errors.arableArea}
+              min={0}
               required
             />
 
@@ -606,6 +619,7 @@ export const FarmForm: React.FC<FarmFormProps> = ({
               value={formData.vegetationArea}
               onChange={(value) => handleChange('vegetationArea', value)}
               error={errors.vegetationArea}
+              min={0}
               required
             />
 

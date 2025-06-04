@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { X } from 'lucide-react';
 import { Button, Input } from '../../atoms';
 import { useCreateProducerMutation, useUpdateProducerMutation } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import type { Producer, CreateProducerDto, UpdateProducerDto } from '@libs/types';
 
 interface ProducerFormProps {
@@ -80,6 +81,38 @@ const ErrorMessage = styled.div`
   margin-top: 8px;
 `;
 
+const Select = styled.select<{ hasError?: boolean }>`
+  padding: 12px 16px;
+  border: 1px solid ${props => props.hasError ? '#ef4444' : '#d1d5db'};
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease-in-out;
+
+  &:focus {
+    outline: none;
+    border-color: ${props => props.hasError ? '#ef4444' : '#10b981'};
+    box-shadow: 0 0 0 3px ${props => props.hasError ? '#fecaca' : '#d1fae5'};
+  }
+
+  &:disabled {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+`;
+
+const SelectContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+`;
+
 // Função para validar CPF
 const validateCPF = (cpf: string): boolean => {
   cpf = cpf.replace(/[^\d]/g, '');
@@ -155,10 +188,12 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
     city: '',
     state: '',
   });
+  const [personType, setPersonType] = useState<'PF' | 'PJ'>('PF');
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [createProducer, { isLoading: isCreating }] = useCreateProducerMutation();
   const [updateProducer, { isLoading: isUpdating }] = useUpdateProducerMutation();
+  const { success, error: showError } = useToastContext();
 
   const isEditing = !!producer;
   const isLoading = isCreating || isUpdating;
@@ -171,6 +206,9 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
         city: producer.city,
         state: producer.state,
       });
+      
+      const cleanDoc = producer.document.replace(/[^\d]/g, '');
+      setPersonType(cleanDoc.length === 11 ? 'PF' : 'PJ');
     }
   }, [producer]);
 
@@ -220,6 +258,7 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
           state: formData.state,
         };
         await updateProducer({ id: producer.id, updates: updateData }).unwrap();
+        success(`Produtor ${formData.name} atualizado com sucesso!`);
       } else {
         const createData: CreateProducerDto = {
           name: formData.name,
@@ -228,13 +267,16 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
           state: formData.state,
         };
         await createProducer(createData).unwrap();
+        success(`Produtor ${formData.name} criado com sucesso!`);
       }
 
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar produtor:', error);
-      setErrors({ submit: 'Erro ao salvar produtor. Tente novamente.' });
+      const errorMessage = error?.data?.message || 'Erro ao salvar produtor. Tente novamente.';
+      showError(errorMessage);
+      setErrors({ submit: errorMessage });
     }
   };
 
@@ -244,6 +286,26 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handlePersonTypeChange = (type: 'PF' | 'PJ') => {
+    setPersonType(type);
+    // Limpar o documento quando trocar o tipo
+    setFormData(prev => ({ ...prev, document: '' }));
+    // Limpar erro do documento
+    if (errors.document) {
+      setErrors(prev => ({ ...prev, document: '' }));
+    }
+  };
+
+  // Função para obter a máscara baseada no tipo de pessoa
+  const getDocumentMask = (): string => {
+    return personType === 'PF' ? '000.000.000-00' : '00.000.000/0000-00';
+  };
+
+  // Função para obter o placeholder baseado no tipo de pessoa
+  const getDocumentPlaceholder = (): string => {
+    return personType === 'PF' ? '000.000.000-00' : '00.000.000/0000-00';
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -272,11 +334,26 @@ export const ProducerForm: React.FC<ProducerFormProps> = ({
             required
           />
 
+          <SelectContainer>
+            <Label>
+              Tipo de Pessoa <span style={{ color: '#ef4444' }}>*</span>
+            </Label>
+            <Select
+              value={personType}
+              onChange={(e) => handlePersonTypeChange(e.target.value as 'PF' | 'PJ')}
+              disabled={isEditing}
+            >
+              <option value="PF">Pessoa Física (CPF)</option>
+              <option value="PJ">Pessoa Jurídica (CNPJ)</option>
+            </Select>
+          </SelectContainer>
+
           <Input
-            label="CPF/CNPJ"
-            placeholder="00000000000 ou 00000000000000"
+            label={personType === 'PF' ? 'CPF' : 'CNPJ'}
+            placeholder={getDocumentPlaceholder()}
             value={formData.document}
             onChange={(value) => handleChange('document', value)}
+            mask={getDocumentMask()}
             error={errors.document}
             required
           />

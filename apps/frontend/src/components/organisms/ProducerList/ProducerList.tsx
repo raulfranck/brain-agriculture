@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Trash2, Edit, MapPin } from 'lucide-react';
 import { Card } from '../../molecules/Card/Card';
+import { ConfirmModal } from '../../molecules/ConfirmModal/ConfirmModal';
 import { Button } from '../../atoms';
 import { useGetProducersQuery, useDeleteProducerMutation } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import type { Producer } from '@libs/types';
 
 const Container = styled.div`
@@ -86,14 +88,37 @@ interface ProducerListProps {
 export const ProducerList: React.FC<ProducerListProps> = ({ onEdit }) => {
   const { data: producers, isLoading, error } = useGetProducersQuery();
   const [deleteProducer] = useDeleteProducerMutation();
+  const { success, error: showError } = useToastContext();
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    producerId?: string;
+    producerName?: string;
+    farmCount?: number;
+  }>({
+    isOpen: false,
+  });
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este produtor?')) {
-      try {
-        await deleteProducer(id).unwrap();
-      } catch (error) {
-        console.error('Erro ao excluir produtor:', error);
-      }
+  const handleDeleteClick = (producer: Producer) => {
+    setConfirmModal({
+      isOpen: true,
+      producerId: producer.id,
+      producerName: producer.name,
+      farmCount: producer.farms?.length || 0,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.producerId) return;
+
+    try {
+      await deleteProducer(confirmModal.producerId).unwrap();
+      success(`Produtor ${confirmModal.producerName} excluído com sucesso!`);
+      setConfirmModal({ isOpen: false });
+    } catch (error) {
+      console.error('Erro ao excluir produtor:', error);
+      showError('Erro ao excluir produtor. Tente novamente.');
+      setConfirmModal({ isOpen: false });
     }
   };
 
@@ -110,51 +135,68 @@ export const ProducerList: React.FC<ProducerListProps> = ({ onEdit }) => {
   }
 
   return (
-    <Container>
-      {producers.map((producer) => (
-        <ProducerCard key={producer.id}>
-          <ProducerHeader>
-            <div>
-              <ProducerName>{producer.name}</ProducerName>
-              <ProducerDocument>{producer.document}</ProducerDocument>
-            </div>
-          </ProducerHeader>
+    <>
+      <Container>
+        {producers.map((producer) => (
+          <ProducerCard key={producer.id}>
+            <ProducerHeader>
+              <div>
+                <ProducerName>{producer.name}</ProducerName>
+                <ProducerDocument>{producer.document}</ProducerDocument>
+              </div>
+            </ProducerHeader>
 
-          <LocationContainer>
-            <MapPin size={16} />
-            <LocationText>
-              {producer.city}, {producer.state}
-            </LocationText>
-          </LocationContainer>
+            <LocationContainer>
+              <MapPin size={16} />
+              <LocationText>
+                {producer.city}, {producer.state}
+              </LocationText>
+            </LocationContainer>
 
-          {producer.farms && (
-            <FarmCount>
-              {producer.farms.length} fazenda{producer.farms.length !== 1 ? 's' : ''}
-            </FarmCount>
-          )}
-
-          <ActionsContainer>
-            {onEdit && (
-              <Button
-                variant="secondary"
-                size="small"
-                onClick={() => onEdit(producer)}
-              >
-                <Edit size={16} />
-                Editar
-              </Button>
+            {producer.farms && (
+              <FarmCount>
+                {producer.farms.length} fazenda{producer.farms.length !== 1 ? 's' : ''}
+              </FarmCount>
             )}
-            <Button
-              variant="danger"
-              size="small"
-              onClick={() => handleDelete(producer.id)}
-            >
-              <Trash2 size={16} />
-              Excluir
-            </Button>
-          </ActionsContainer>
-        </ProducerCard>
-      ))}
-    </Container>
+
+            <ActionsContainer>
+              {onEdit && (
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => onEdit(producer)}
+                >
+                  <Edit size={16} />
+                  Editar
+                </Button>
+              )}
+              <Button
+                variant="danger"
+                size="small"
+                onClick={() => handleDeleteClick(producer)}
+              >
+                <Trash2 size={16} />
+                Excluir
+              </Button>
+            </ActionsContainer>
+          </ProducerCard>
+        ))}
+      </Container>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onCancel={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message={
+          confirmModal.farmCount && confirmModal.farmCount > 0
+            ? `Tem certeza que deseja excluir o produtor "${confirmModal.producerName}"?\n\nAo excluir este produtor, ${confirmModal.farmCount} fazenda${confirmModal.farmCount !== 1 ? 's' : ''} também será${confirmModal.farmCount !== 1 ? 'ão' : ''} excluída${confirmModal.farmCount !== 1 ? 's' : ''}.`
+            : `Tem certeza que deseja excluir o produtor "${confirmModal.producerName}"?`
+        }
+        variant="danger"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
+    </>
   );
 }; 

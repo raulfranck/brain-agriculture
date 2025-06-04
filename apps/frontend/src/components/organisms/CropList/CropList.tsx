@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Edit2, Trash2 } from 'lucide-react';
 import { Card } from '../../molecules/Card/Card';
+import { ConfirmModal } from '../../molecules/ConfirmModal/ConfirmModal';
 import { Button } from '../../atoms/Button/Button';
 import { useGetCropsQuery, useDeleteCropMutation } from '../../../store/api';
+import { useToastContext } from '../../../contexts/ToastContext';
 import { CropForm } from '../CropForm/CropForm';
 import type { Crop } from '@libs/types/crop';
 
@@ -64,16 +66,42 @@ const ErrorMessage = styled.div`
 export const CropList: React.FC = () => {
   const { data: crops, isLoading, error } = useGetCropsQuery();
   const [deleteCrop] = useDeleteCropMutation();
+  const { success, error: showError } = useToastContext();
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null);
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    cropId?: string;
+    cropName?: string;
+  }>({
+    isOpen: false,
+  });
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta cultura?')) {
-      try {
-        await deleteCrop(id).unwrap();
-      } catch (error) {
-        console.error('Erro ao excluir cultura:', error);
-        alert('Erro ao excluir cultura');
+  const handleDeleteClick = (crop: Crop) => {
+    setConfirmModal({
+      isOpen: true,
+      cropId: crop.id,
+      cropName: crop.name,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.cropId) return;
+
+    try {
+      await deleteCrop(confirmModal.cropId).unwrap();
+      success(`Cultura ${confirmModal.cropName} excluída com sucesso!`);
+      setConfirmModal({ isOpen: false });
+    } catch (error: any) {
+      console.error('Erro ao excluir cultura:', error);
+      // Verificar se é erro de cultura em uso
+      if (error?.data?.message?.includes('cultura está sendo utilizada') || 
+          error?.data?.message?.includes('being used')) {
+        showError('Não é possível excluir esta cultura pois ela está sendo utilizada em fazendas.');
+      } else {
+        showError('Erro ao excluir cultura. Tente novamente.');
       }
+      setConfirmModal({ isOpen: false });
     }
   };
 
@@ -108,7 +136,7 @@ export const CropList: React.FC = () => {
                 <Button
                   variant="danger"
                   size="small"
-                  onClick={() => handleDelete(crop.id)}
+                  onClick={() => handleDeleteClick(crop)}
                   icon={<Trash2 size={16} />}
                 >
                   Excluir
@@ -128,6 +156,17 @@ export const CropList: React.FC = () => {
           onClose={() => setEditingCrop(null)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onCancel={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Exclusão"
+        message={`Tem certeza que deseja excluir a cultura "${confirmModal.cropName}"?`}
+        variant="danger"
+        confirmText="Excluir"
+        cancelText="Cancelar"
+      />
     </>
   );
 }; 
