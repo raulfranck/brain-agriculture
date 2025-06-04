@@ -47,6 +47,7 @@
 - [x] Configurar camada de serviços para comunicação com backend
 - [x] Adicionar tipagem compartilhada via `libs/types`
 - [x] Configurar variáveis de ambiente para URL do backend
+- [ ] Consumir endpoints backend - Criar Productor - Farm - Garantir comunicação total com backend
 - [ ] Implementar dashboard analítico no frontend
 - [ ] Criar gráficos de pizza (estado, cultura, uso do solo)
 - [ ] Exibir totais de fazendas e hectares

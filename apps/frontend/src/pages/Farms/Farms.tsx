@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Truck } from 'lucide-react';
 import { Button } from '../../components/atoms';
-import { ProducerList } from '../../components/organisms/ProducerList/ProducerList';
-import { ProducerForm } from '../../components/organisms/ProducerForm/ProducerForm';
-import type { Producer } from '@libs/types';
+import { FarmList } from '../../components/organisms/FarmList/FarmList';
+import { FarmForm } from '../../components/organisms/FarmForm/FarmForm';
+import type { Farm } from '@libs/types';
 
 const Container = styled.div`
   padding: 24px;
@@ -36,51 +36,51 @@ const Subtitle = styled.p`
   color: #6b7280;
 `;
 
-export const Producers: React.FC = () => {
+export const Farms: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
-  const [editingProducer, setEditingProducer] = useState<Producer | undefined>();
+  const [editingFarm, setEditingFarm] = useState<Farm | undefined>();
 
-  const handleCreateProducer = () => {
-    setEditingProducer(undefined);
+  const handleCreateFarm = () => {
+    setEditingFarm(undefined);
     setShowForm(true);
   };
 
-  const handleEditProducer = (producer: Producer) => {
-    setEditingProducer(producer);
+  const handleEditFarm = (farm: Farm) => {
+    setEditingFarm(farm);
     setShowForm(true);
   };
 
   const handleCloseForm = () => {
     setShowForm(false);
-    setEditingProducer(undefined);
+    setEditingFarm(undefined);
   };
 
   const handleFormSuccess = () => {
-    // O ProducerList será atualizado automaticamente via RTK Query
-    console.log('Produtor salvo com sucesso!');
+    // O FarmList será atualizado automaticamente via RTK Query
+    console.log('Fazenda salva com sucesso!');
   };
 
   return (
     <Container>
       <Header>
         <TitleContainer>
-          <Users size={32} color="#10b981" />
+          <Truck size={32} color="#10b981" />
           <div>
-            <Title>Produtores Rurais</Title>
-            <Subtitle>Gerencie os produtores cadastrados no sistema</Subtitle>
+            <Title>Fazendas</Title>
+            <Subtitle>Gerencie as propriedades rurais cadastradas</Subtitle>
           </div>
         </TitleContainer>
-        <Button onClick={handleCreateProducer}>
+        <Button onClick={handleCreateFarm}>
           <Plus size={20} />
-          Novo Produtor
+          Nova Fazenda
         </Button>
       </Header>
 
-      <ProducerList onEdit={handleEditProducer} />
+      <FarmList onEdit={handleEditFarm} />
 
       {showForm && (
-        <ProducerForm
-          producer={editingProducer}
+        <FarmForm
+          farm={editingFarm}
           onClose={handleCloseForm}
           onSuccess={handleFormSuccess}
         />
