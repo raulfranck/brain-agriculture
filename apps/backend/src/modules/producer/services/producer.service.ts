@@ -138,17 +138,66 @@ export class ProducerService {
       }
     }
 
-    await this.producerRepository.update(id, updateProducerDto);
-    const updatedProducer = await this.findOne(id);
+    try {
+      // Método mais robusto usando merge + save para evitar problemas de índices corrompidos
+      const producerToUpdate = await this.producerRepository.findOne({ where: { id } });
+      if (!producerToUpdate) {
+        throw new NotFoundException('Produtor não encontrado');
+      }
 
-    this.logger.log({
-      operation: 'producer.update',
-      producerId: id,
-      updateFields: Object.keys(updateProducerDto),
-      duration: Date.now() - startTime,
-    }, 'Produtor atualizado com sucesso');
+      const mergedProducer = this.producerRepository.merge(producerToUpdate, updateProducerDto);
+      const savedProducer = await this.producerRepository.save(mergedProducer);
 
-    return updatedProducer;
+      this.logger.log({
+        operation: 'producer.update',
+        producerId: id,
+        updateFields: Object.keys(updateProducerDto),
+        duration: Date.now() - startTime,
+      }, 'Produtor atualizado com sucesso');
+
+      return savedProducer;
+    } catch (error) {
+      // Se for erro de índice corrompido, tentar método alternativo
+      if (error.message?.includes('unexpected zero page') || 
+          error.message?.includes('pg_publication_rel')) {
+        this.logger.warn({
+          operation: 'producer.update',
+          producerId: id,
+          error: error.message,
+          duration: Date.now() - startTime,
+        }, 'Detectado problema de índice corrompido, tentando método alternativo');
+
+        // Método alternativo: deletar e recriar (cuidado com cascata)
+        const farmsBackup = producer.farms || [];
+        
+        await this.producerRepository.delete(id);
+        const newProducer = this.producerRepository.create({
+          ...producer,
+          ...updateProducerDto,
+          farms: farmsBackup, // Manter fazendas associadas
+        });
+        const savedProducer = await this.producerRepository.save(newProducer);
+
+        this.logger.log({
+          operation: 'producer.update',
+          producerId: id,
+          method: 'alternative',
+          duration: Date.now() - startTime,
+        }, 'Produtor atualizado usando método alternativo');
+
+        return savedProducer;
+      }
+      
+      this.logger.error({
+        operation: 'producer.update',
+        producerId: id,
+        error: error.message,
+        stack: error.stack,
+        duration: Date.now() - startTime,
+      }, 'Erro ao atualizar produtor');
+      
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<void> {

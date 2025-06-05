@@ -216,17 +216,63 @@ export class FarmService {
       );
     }
 
-    await this.farmRepository.update(id, updateFarmDto);
-    const updatedFarm = await this.findOne(id);
+    try {
+      // Método mais robusto usando merge + save para evitar problemas de índices corrompidos
+      const farmToUpdate = await this.farmRepository.findOne({ where: { id } });
+      if (!farmToUpdate) {
+        throw new NotFoundException('Fazenda não encontrada');
+      }
 
-    this.logger.log({
-      operation: 'farm.update',
-      farmId: id,
-      updateFields: Object.keys(updateFarmDto),
-      duration: Date.now() - startTime,
-    }, 'Fazenda atualizada com sucesso');
+      const mergedFarm = this.farmRepository.merge(farmToUpdate, updateFarmDto);
+      const savedFarm = await this.farmRepository.save(mergedFarm);
 
-    return updatedFarm;
+      this.logger.log({
+        operation: 'farm.update',
+        farmId: id,
+        updateFields: Object.keys(updateFarmDto),
+        duration: Date.now() - startTime,
+      }, 'Fazenda atualizada com sucesso');
+
+      return savedFarm;
+    } catch (error) {
+      // Se for erro de índice corrompido, tentar método alternativo
+      if (error.message?.includes('unexpected zero page') || 
+          error.message?.includes('pg_publication_rel')) {
+        this.logger.warn({
+          operation: 'farm.update',
+          farmId: id,
+          error: error.message,
+          duration: Date.now() - startTime,
+        }, 'Detectado problema de índice corrompido, tentando método alternativo');
+
+        // Método alternativo: deletar e recriar
+        await this.farmRepository.delete(id);
+        const newFarm = this.farmRepository.create({
+          ...farm,
+          ...updateFarmDto,
+        });
+        const savedFarm = await this.farmRepository.save(newFarm);
+
+        this.logger.log({
+          operation: 'farm.update',
+          farmId: id,
+          method: 'alternative',
+          duration: Date.now() - startTime,
+        }, 'Fazenda atualizada usando método alternativo');
+
+        return savedFarm;
+      }
+      
+      this.logger.error({
+        operation: 'farm.update',
+        farmId: id,
+        error: error.message,
+        stack: error.stack,
+        duration: Date.now() - startTime,
+      }, 'Erro ao atualizar fazenda');
+      
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<void> {

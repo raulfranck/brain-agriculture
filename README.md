@@ -98,6 +98,9 @@ docker-compose up --build
   - Gere e rode as migrations sempre que alterar entidades.
 - **Frontend não acessa API?**
   - Verifique a variável `VITE_API_URL` no frontend.
+- **Erro de índice corrompido nos métodos PUT?**
+  - Execute o script de correção: `chmod +x scripts/fix-db.sh && ./scripts/fix-db.sh`
+  - Ou execute manualmente: `docker-compose exec postgres psql -U postgres -d brain_agriculture -c "REINDEX SYSTEM brain_agriculture;"`
 
 ---
 
