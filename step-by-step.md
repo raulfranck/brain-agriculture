@@ -94,4 +94,4 @@
 
 - [x] Documentar endpoints no Swagger
 - [x] Criar README detalhado com instruções de uso e desenvolvimento
-- [ ] Criar diagrama de entidades (ex: dbdiagram.io)
+- [x] Criar diagrama de entidades (ex: dbdiagram.io)
