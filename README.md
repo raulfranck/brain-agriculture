@@ -89,18 +89,8 @@ docker-compose up --build
 - Validações de CPF/CNPJ e regras de área
 - Dashboard analítico no frontend (gráficos, totais, filtros)
 - Logger estruturado (nestjs-pino)
-- Testes unitários e de integração no backend
 - Dockerfile e docker-compose para toda stack
 - Swagger e documentação dos endpoints
-
-### 🚧 O que falta / próximos passos
-- [ ] Testes unitários para componentes e hooks do frontend
-- [ ] Cobertura mínima de 80% nos testes frontend
-- [ ] Configurar ESLint, Prettier, Husky e lint-staged
-- [ ] Adicionar métricas Prometheus no backend (`/metrics`)
-- [ ] Badge de status do CI no README
-- [ ] Criar diagrama de entidades (ex: dbdiagram.io)
-- [ ] Melhorar README com exemplos de uso da API
 
 ---
 
