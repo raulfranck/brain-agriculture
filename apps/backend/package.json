@@ -82,20 +82,9 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.spec.ts",
-      "!src/**/*.module.ts",
-      "!src/main.ts",
-      "!src/migrations/**"
+      "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ],
-    "testEnvironment": "node",
-    "verbose": true,
-    "testTimeout": 30000
+    "testEnvironment": "node"
   }
 }

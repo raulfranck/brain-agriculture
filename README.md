@@ -81,63 +81,11 @@ docker-compose up --build
 
 ## 🛠️ Scripts Úteis
 
-### Banco de Dados
 - `pnpm migration:generate` — Gera uma nova migration baseada nas entidades
 - `pnpm migration:run` — Aplica as migrations no banco
 - `pnpm migration:revert` — Reverte a última migration
-
-### Docker
 - `docker-compose up -d` — Sobe todos os serviços em background
-- `docker-compose logs -f backend` — Monitora logs do backend
-
-### Testes
-- `cd apps/backend && pnpm test` — Testes unitários
-- `cd apps/backend && pnpm test:watch` — Testes unitários em modo watch
-- `cd apps/backend && pnpm test:cov` — Testes com cobertura
-- `cd apps/backend && pnpm test:e2e` — Testes de integração (E2E)
-- `cd apps/backend && pnpm test:debug` — Debug de testes
-
----
-
-## 🧪 Executando Testes
-
-### Configuração de Ambiente para Testes
-Para os testes E2E, configure um banco de dados separado:
-
-```bash
-# Crie um banco específico para testes
-docker-compose exec postgres psql -U postgres -c "CREATE DATABASE brain_agriculture_test;"
-```
-
-### Executando os Testes
-
-```bash
-# Navegar para o backend
-cd apps/backend
-
-# Testes unitários
-pnpm test
-
-# Testes com cobertura (meta: 80%)
-pnpm test:cov
-
-# Testes de integração (E2E)
-pnpm test:e2e
-
-# Testes em modo watch (desenvolvimento)
-pnpm test:watch
-```
-
-### Relatórios de Cobertura
-Os relatórios são gerados em `apps/backend/coverage/`:
-- **HTML**: `coverage/lcov-report/index.html`
-- **Terminal**: Exibido automaticamente
-- **LCOV**: `coverage/lcov.info`
-
-### Métricas de Qualidade
-- **Cobertura mínima**: 80% (branches, functions, lines, statements)
-- **Timeout**: 30 segundos por teste
-- **Ambiente**: Node.js isolado
+- `pnpm test` — Roda os testes unitários
 
 ---
 

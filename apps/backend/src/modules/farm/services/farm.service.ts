@@ -226,12 +226,12 @@ export class FarmService {
       const mergedFarm = this.farmRepository.merge(farmToUpdate, updateFarmDto);
       const savedFarm = await this.farmRepository.save(mergedFarm);
 
-      this.logger.log({
-        operation: 'farm.update',
-        farmId: id,
-        updateFields: Object.keys(updateFarmDto),
-        duration: Date.now() - startTime,
-      }, 'Fazenda atualizada com sucesso');
+    this.logger.log({
+      operation: 'farm.update',
+      farmId: id,
+      updateFields: Object.keys(updateFarmDto),
+      duration: Date.now() - startTime,
+    }, 'Fazenda atualizada com sucesso');
 
       return savedFarm;
     } catch (error) {

@@ -148,12 +148,12 @@ export class ProducerService {
       const mergedProducer = this.producerRepository.merge(producerToUpdate, updateProducerDto);
       const savedProducer = await this.producerRepository.save(mergedProducer);
 
-      this.logger.log({
-        operation: 'producer.update',
-        producerId: id,
-        updateFields: Object.keys(updateProducerDto),
-        duration: Date.now() - startTime,
-      }, 'Produtor atualizado com sucesso');
+    this.logger.log({
+      operation: 'producer.update',
+      producerId: id,
+      updateFields: Object.keys(updateProducerDto),
+      duration: Date.now() - startTime,
+    }, 'Produtor atualizado com sucesso');
 
       return savedProducer;
     } catch (error) {

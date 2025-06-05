@@ -86,9 +86,9 @@
 
 ## 7. Testes
 
-- [ ] Configurar Jest em ambos os apps
-- [ ] Escrever testes unitários para services e regras de negócio (backend)
-- [ ] Escrever testes de integração para endpoints (backend)
+- [x] Configurar Jest em ambos os apps
+- [x] Escrever testes unitários para services e regras de negócio (backend)
+- [x] Escrever testes de integração para endpoints (backend)
 - [ ] Escrever testes unitários para componentes e hooks (frontend)
 - [ ] Garantir cobertura mínima de 80%
 
