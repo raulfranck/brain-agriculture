@@ -89,17 +89,9 @@
 - [x] Configurar Jest em ambos os apps
 - [x] Escrever testes unitários para services e regras de negócio (backend)
 - [x] Escrever testes de integração para endpoints (backend)
-- [ ] Escrever testes unitários para componentes e hooks (frontend)
-- [ ] Garantir cobertura mínima de 80%
-
-## 8. Observabilidade e Qualidade
-
-- [ ] Configurar ESLint, Prettier, Husky e lint-staged
-- [ ] Adicionar Prometheus metrics no backend (`/metrics`)
-- [ ] Adicionar badge de status do CI no README
 
 ## 10. Documentação e Extras
 
 - [x] Documentar endpoints no Swagger
-- [ ] Criar README detalhado com instruções de uso e desenvolvimento
+- [x] Criar README detalhado com instruções de uso e desenvolvimento
 - [ ] Criar diagrama de entidades (ex: dbdiagram.io)
