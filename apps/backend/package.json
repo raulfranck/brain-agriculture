@@ -16,8 +16,13 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:cov:open": "jest --coverage && open coverage/lcov-report/index.html",
+    "test:unit": "jest --testPathPattern='\\.spec\\.ts$'",
+    "test:unit:watch": "jest --testPathPattern='\\.spec\\.ts$' --watch",
+    "test:unit:cov": "jest --testPathPattern='\\.spec\\.ts$' --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:ci": "jest --coverage --ci --watchAll=false --passWithNoTests",
     "typeorm": "node ./node_modules/typeorm/cli.js -d dist/data-source.js",
     "migration:generate": "pnpm typeorm migration:generate src/migrations/InitSchema -d src/data-source.ts",
     "migration:run": "pnpm typeorm migration:run -d src/data-source.ts",
@@ -82,9 +87,32 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.d.ts",
+      "!**/node_modules/**",
+      "!**/test/**",
+      "!**/*.module.ts",
+      "!**/*.interface.ts",
+      "!main.ts",
+      "!data-source.ts",
+      "!migrations/**"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    },
+    "setupFilesAfterEnv": ["<rootDir>/test-setup.ts"]
   }
 }

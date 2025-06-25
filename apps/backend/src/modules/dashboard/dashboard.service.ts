@@ -46,7 +46,7 @@ export class DashboardService {
       vegetation: parseFloat(landUseData?.vegetation || '0'),
     };
 
-    // Por enquanto, retornamos dados vazios para culturas (será implementado com Harvest/Crop)
+    // Por enquanto, retornamos dados vazios para culturas
     const farmsByCrop = [
       { crop: 'Soja', count: 0 },
       { crop: 'Milho', count: 0 },

@@ -1,5 +1,12 @@
 import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
 
+/* 
+✅ Algoritmo oficial da Receita Federal
+✅ Validação de dígitos verificadores
+✅ Rejeita sequências inválidas (111.111.111-11)
+✅ Remove formatação automaticamente
+*/
+
 @ValidatorConstraint({ name: 'isValidDocument', async: false })
 export class DocumentValidator implements ValidatorConstraintInterface {
   validate(document: string, args: ValidationArguments) {
